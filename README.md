@@ -2,6 +2,10 @@
 
 Public under-construction page for Detasawy. Every route serves the placeholder page in `public/index.html`, with `Cache-Control: no-store` so nothing stays cached once the real site ships.
 
+## Conventions
+
+Everything user-facing in Detasawy must be mobile friendly: responsive layout, no horizontal scrolling, safe-area aware, and checked at phone width (~375px) before shipping.
+
 ## Run locally
 
 ```
