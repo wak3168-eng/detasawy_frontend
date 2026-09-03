@@ -1,0 +1,16 @@
+{
+  "name": "detasawy-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Detasawy frontend service — serves the public under-construction page",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

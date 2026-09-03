@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Detasawy is under construction — we're building something new. Check back soon.">
+  <title>Detasawy — Under Construction</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23f59e0b'/><text x='50' y='69' font-size='56' font-weight='700' font-family='Segoe UI,Arial,sans-serif' text-anchor='middle' fill='%230b0f1a'>D</text></svg>">
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --fg: #e9edf5;
+      --muted: #97a2b8;
+      --line: rgba(255, 255, 255, .08);
+      --accent: #f59e0b;
+      --accent-soft: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--fg);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(1000px 520px at 50% -12%, rgba(245, 158, 11, .13), transparent 60%),
+        linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+      background-size: auto, 64px 64px, 64px 64px;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 48px 24px;
+    }
+    .stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 22px;
+      max-width: 640px;
+    }
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent-soft), var(--accent) 60%, #d97706);
+      color: #0b0f1a;
+      font-size: 38px;
+      font-weight: 800;
+      box-shadow: 0 12px 40px rgba(245, 158, 11, .25);
+    }
+    .brand {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .42em;
+      text-indent: .42em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    h1 {
+      font-size: clamp(30px, 6vw, 52px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1.12;
+    }
+    h1 .accent {
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .sub {
+      font-size: clamp(15px, 2.4vw, 18px);
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 46ch;
+    }
+    .bar {
+      position: relative;
+      width: 240px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      overflow: hidden;
+    }
+    .bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: sweep 2.2s ease-in-out infinite;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 16px;
+      border: 1px solid rgba(245, 158, 11, .35);
+      border-radius: 999px;
+      background: rgba(245, 158, 11, .07);
+      color: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    footer {
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--line);
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .35; transform: scale(.8); }
+    }
+    @keyframes sweep {
+      0% { transform: translateX(-110%); }
+      60%, 100% { transform: translateX(280%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dot, .bar::after { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="stack">
+      <div class="logo" aria-hidden="true">D</div>
+      <div class="brand">Detasawy</div>
+      <h1>Something new is<br><span class="accent">under construction</span></h1>
+      <p class="sub">We're hard at work building this site. It isn't ready just yet &mdash; please check back soon.</p>
+      <div class="bar" role="presentation"></div>
+      <div class="pill"><span class="dot"></span>Coming soon</div>
+    </div>
+  </main>
+  <footer>&copy; 2026 Detasawy. All rights reserved.</footer>
+</body>
+</html>
