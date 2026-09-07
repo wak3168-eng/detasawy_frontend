@@ -34,10 +34,3 @@ export function SelectField({
   );
 }
 
-export function LaunchNotice() {
-  return (
-    <p className="text-center text-xs font-semibold text-azure-deep">
-      We&apos;re not live yet &mdash; accounts open at launch.
-    </p>
-  );
-}

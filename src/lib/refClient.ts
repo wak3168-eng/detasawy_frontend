@@ -1,10 +1,5 @@
+import { API_BASE } from "@/lib/apiBase";
 import type { RefOption } from "@/lib/refTypes";
-
-// The Django backend on Railway serves all reference data;
-// NEXT_PUBLIC_API_BASE overrides it (e.g. a future api.detasawy.com).
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ??
-  "https://detasawybackend-production.up.railway.app";
 
 const cache = new Map<string, Promise<RefOption[]>>();
 

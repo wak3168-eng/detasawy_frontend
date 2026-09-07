@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { loadDraft, type ProfileDraft } from "@/lib/profileDraft";
+import { logout } from "@/lib/api";
+import { hasToken } from "@/lib/auth";
+import {
+  clearDraft,
+  loadDraft,
+  subscribeDraft,
+  type ProfileDraft,
+} from "@/lib/profileDraft";
 
 const NAV = [
   { href: "/contribute", label: "Contribute" },
@@ -12,11 +19,15 @@ const NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
     setDraft(loadDraft());
-  }, [pathname]);
+    setAuthed(hasToken());
+    return subscribeDraft(() => setDraft(loadDraft()));
+  }, []);
 
   const complete = Boolean(draft?.completedAt);
   const place = [draft?.district?.name, draft?.province?.name]
@@ -104,6 +115,19 @@ export default function Sidebar() {
             </Link>
           ))}
         </nav>
+
+        {authed && (
+          <button
+            onClick={async () => {
+              await logout();
+              clearDraft();
+              router.push("/");
+            }}
+            className="mt-4 w-full py-1.5 text-xs font-bold text-ink-soft transition-colors hover:text-ink"
+          >
+            Log out
+          </button>
+        )}
       </div>
     </aside>
   );

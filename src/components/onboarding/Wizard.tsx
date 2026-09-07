@@ -7,6 +7,8 @@ import StepPhoto from "@/components/onboarding/StepPhoto";
 import StepSelect from "@/components/onboarding/StepSelect";
 import StepShell from "@/components/onboarding/StepShell";
 import StepText from "@/components/onboarding/StepText";
+import { saveProfile } from "@/lib/api";
+import { hasToken } from "@/lib/auth";
 import {
   clearDraft,
   loadDraft,
@@ -63,6 +65,13 @@ export default function Wizard() {
   useEffect(() => {
     if (ready) saveDraft(draft);
   }, [draft, ready]);
+
+  useEffect(() => {
+    if (ready && stage === "done" && draft.completedAt && hasToken()) {
+      saveProfile(draft).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, stage]);
 
   const advance = (next: Stage, patch: Partial<ProfileDraft>) => {
     setHistory((h) => [...h, { stage, draft }]);

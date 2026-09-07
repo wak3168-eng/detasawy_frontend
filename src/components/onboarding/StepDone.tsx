@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { hasToken } from "@/lib/auth";
 import type { ProfileDraft } from "@/lib/profileDraft";
 
 export default function StepDone({
@@ -18,6 +20,11 @@ export default function StepDone({
     (draft.tribePath ?? []).some((t) => t.pending) ||
     draft.district?.pending ||
     draft.tehsil?.pending;
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    setAuthed(hasToken());
+  }, []);
 
   return (
     <div className="space-y-5">
@@ -59,7 +66,9 @@ export default function StepDone({
         </p>
       )}
       <p className="text-center text-sm text-ink-soft">
-        Saved on this device. Your profile syncs when accounts open at launch.
+        {authed
+          ? "Saved to your account."
+          : "Saved on this device — sign up to keep it."}
       </p>
       <Link
         href={nextHref}

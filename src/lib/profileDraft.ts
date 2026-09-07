@@ -15,6 +15,20 @@ export type ProfileDraft = {
 };
 
 const KEY = "detasawy:profile-draft";
+const CHANGE_EVENT = "detasawy:draft-changed";
+
+function notifyChange() {
+  try {
+    window.dispatchEvent(new Event(CHANGE_EVENT));
+  } catch {
+    // no window (SSR) — nothing to notify
+  }
+}
+
+export function subscribeDraft(listener: () => void): () => void {
+  window.addEventListener(CHANGE_EVENT, listener);
+  return () => window.removeEventListener(CHANGE_EVENT, listener);
+}
 
 export function loadDraft(): ProfileDraft {
   try {
@@ -31,6 +45,7 @@ export function saveDraft(draft: ProfileDraft) {
   } catch {
     // storage unavailable — the wizard still works for the session
   }
+  notifyChange();
 }
 
 export function clearDraft() {
@@ -39,4 +54,5 @@ export function clearDraft() {
   } catch {
     // ignore
   }
+  notifyChange();
 }

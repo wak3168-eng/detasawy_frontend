@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { loadDraft, type ProfileDraft } from "@/lib/profileDraft";
+import {
+  loadDraft,
+  subscribeDraft,
+  type ProfileDraft,
+} from "@/lib/profileDraft";
 
 const ACTIVITIES = [
   {
@@ -27,6 +31,7 @@ export default function DailySetPanel() {
 
   useEffect(() => {
     setDraft(loadDraft());
+    return subscribeDraft(() => setDraft(loadDraft()));
   }, []);
 
   if (draft === null) return null;
