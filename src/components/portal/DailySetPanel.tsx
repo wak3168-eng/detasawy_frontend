@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CampaignsCard from "@/components/portal/CampaignsCard";
+import NameItActivity from "@/components/portal/NameItActivity";
 import PointsCard from "@/components/portal/PointsCard";
 import PromptPreview from "@/components/portal/PromptPreview";
 import ShareCard from "@/components/portal/ShareCard";
 import StatTiles from "@/components/portal/StatTiles";
+import { getTodayCount } from "@/lib/api";
+import { hasToken } from "@/lib/auth";
 import {
   loadDraft,
   subscribeDraft,
@@ -17,20 +20,23 @@ const ACTIVITIES = [
   {
     count: 10,
     title: "Name it",
-    body: "See a picture, give its Pashto name.",
+    body: "See a picture — write it, say it.",
     kind: "picture" as const,
+    live: true,
   },
   {
     count: 3,
     title: "Say it",
     body: "See a picture, record the word aloud.",
     kind: "picture" as const,
+    live: false,
   },
   {
     count: 2,
     title: "Reply",
     body: "Answer in your own dialect.",
     kind: "voice" as const,
+    live: false,
   },
 ];
 
@@ -39,9 +45,14 @@ export default function DailySetPanel() {
   const [preview, setPreview] = useState<(typeof ACTIVITIES)[number] | null>(
     null,
   );
+  const [nameItOpen, setNameItOpen] = useState(false);
+  const [todayCount, setTodayCount] = useState(0);
 
   useEffect(() => {
     setDraft(loadDraft());
+    if (hasToken()) {
+      getTodayCount().then(({ count }) => setTodayCount(count), () => {});
+    }
     return subscribeDraft(() => setDraft(loadDraft()));
   }, []);
 
@@ -85,15 +96,22 @@ export default function DailySetPanel() {
       </div>
 
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-mist">
-        <div className="h-full w-0 rounded-full bg-azure" />
+        <div
+          className="h-full rounded-full bg-azure transition-all duration-500"
+          style={{ width: `${Math.min(todayCount / 15, 1) * 100}%` }}
+        />
       </div>
-      <p className="mt-1.5 text-xs font-bold text-ink-soft">0 / 15 today</p>
+      <p className="mt-1.5 text-xs font-bold text-ink-soft">
+        {todayCount} / 15 today
+      </p>
 
       <div className="mt-6 space-y-3.5">
         {ACTIVITIES.map((activity) => (
           <button
             key={activity.title}
-            onClick={() => setPreview(activity)}
+            onClick={() =>
+              activity.live ? setNameItOpen(true) : setPreview(activity)
+            }
             className="flex w-full items-center gap-4 rounded-3xl border border-mist bg-white/70 p-5 text-left transition-colors hover:border-azure"
           >
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-mist text-lg font-extrabold text-azure-deep">
@@ -103,8 +121,14 @@ export default function DailySetPanel() {
               <h2 className="font-extrabold">{activity.title}</h2>
               <p className="text-xs text-ink-soft">{activity.body}</p>
             </div>
-            <span className="shrink-0 rounded-full bg-mist px-3.5 py-1.5 text-[11px] font-bold text-azure-deep">
-              Preview
+            <span
+              className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold ${
+                activity.live
+                  ? "bg-azure text-white"
+                  : "bg-mist text-azure-deep"
+              }`}
+            >
+              {activity.live ? "Start" : "Preview"}
             </span>
           </button>
         ))}
@@ -115,6 +139,12 @@ export default function DailySetPanel() {
           title={preview.title}
           kind={preview.kind}
           onClose={() => setPreview(null)}
+        />
+      )}
+      {nameItOpen && (
+        <NameItActivity
+          onClose={() => setNameItOpen(false)}
+          onProgress={setTodayCount}
         />
       )}
 

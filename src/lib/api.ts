@@ -177,6 +177,48 @@ export function getPrompts(
   return request(`/api/prompts?kind=${kind}&count=${count}`, {}, true);
 }
 
+export function submitContribution(
+  promptId: number,
+  text: string,
+  audio?: Blob | null,
+): Promise<{ id: number; todayCount: number }> {
+  const token = getToken();
+  if (!token) return Promise.reject(new ApiError("Not logged in."));
+  const form = new FormData();
+  form.append("prompt", String(promptId));
+  form.append("text", text);
+  if (audio) {
+    const ext = audio.type.includes("mp4") ? "mp4" : "webm";
+    form.append("audio", audio, `voice.${ext}`);
+  }
+  return fetch(`${API_BASE}/api/contributions`, {
+    method: "POST",
+    headers: { Authorization: `Token ${token}` },
+    body: form,
+  }).then(async (res) => {
+    const data: unknown = await res.json().catch(() => null);
+    if (!res.ok) throw new ApiError(extractError(data, res.status));
+    return data as { id: number; todayCount: number };
+  });
+}
+
+export type WordRow = {
+  district: string;
+  tribe: string;
+  clan?: string;
+  count: number;
+};
+
+export type WordGroup = { word: string; count: number; rows: WordRow[] };
+
+export function getPromptWords(promptId: number): Promise<WordGroup[]> {
+  return request(`/api/prompts/${promptId}/words`);
+}
+
+export function getTodayCount(): Promise<{ count: number }> {
+  return request("/api/contributions/today", {}, true);
+}
+
 export function saveProfile(draft: ProfileDraft): Promise<ServerProfile> {
   return request(
     "/api/profile",
