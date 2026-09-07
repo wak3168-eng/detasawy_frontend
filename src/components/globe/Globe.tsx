@@ -3,7 +3,8 @@
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { landRings } from "@/lib/landLines";
+import { latLonToVec3 } from "@/lib/geo";
+import { buildLandDots } from "@/lib/landDots";
 import { DIASPORA_LINKS, REGIONS } from "@/lib/regions";
 import { PALETTE } from "@/lib/theme";
 
@@ -11,40 +12,19 @@ const RADIUS = 1;
 const FOCUS_LON = 70;
 const TILT_X = THREE.MathUtils.degToRad(30);
 
-function latLonToVec3(lat: number, lon: number, radius: number) {
-  const phi = THREE.MathUtils.degToRad(lat);
-  const lambda = THREE.MathUtils.degToRad(lon);
-  return new THREE.Vector3(
-    radius * Math.cos(phi) * Math.sin(lambda),
-    radius * Math.sin(phi),
-    radius * Math.cos(phi) * Math.cos(lambda),
-  );
-}
-
 function Land() {
-  const geometries = useMemo(
-    () =>
-      landRings().map((ring) => {
-        const points = ring.map(([lon, lat]) =>
-          latLonToVec3(lat, lon, RADIUS + 0.001),
-        );
-        return new THREE.BufferGeometry().setFromPoints(points);
-      }),
-    [],
-  );
+  const geometry = useMemo(() => {
+    const { positions, colors } = buildLandDots(RADIUS + 0.002);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    return g;
+  }, []);
 
   return (
-    <group>
-      {geometries.map((geometry, i) => (
-        <lineLoop key={i} geometry={geometry}>
-          <lineBasicMaterial
-            color={PALETTE.azure}
-            transparent
-            opacity={0.55}
-          />
-        </lineLoop>
-      ))}
-    </group>
+    <points geometry={geometry}>
+      <pointsMaterial vertexColors size={0.024} depthWrite={false} />
+    </points>
   );
 }
 
