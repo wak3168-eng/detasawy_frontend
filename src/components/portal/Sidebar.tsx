@@ -112,11 +112,13 @@ export default function Sidebar() {
     router.push("/");
   };
 
-  if (!ready) return <aside className="md:w-72 md:shrink-0" />;
+  if (!ready) {
+    return <aside className="md:sticky md:top-0 md:h-dvh md:w-72 md:shrink-0" />;
+  }
 
   if (collapsed) {
     return (
-      <aside className="md:w-20 md:shrink-0">
+      <aside className="p-4 pb-0 md:sticky md:top-0 md:h-dvh md:w-20 md:shrink-0 md:p-0">
         {/* mobile: compact bar */}
         <div className="flex items-center gap-3 rounded-3xl border border-mist bg-white/70 p-3 md:hidden">
           {avatar}
@@ -134,8 +136,8 @@ export default function Sidebar() {
             <Chevron open={false} />
           </button>
         </div>
-        {/* desktop: icon rail */}
-        <div className="hidden flex-col items-center gap-4 rounded-3xl border border-mist bg-white/70 p-3 py-5 md:flex">
+        {/* desktop: full-height icon rail on the edge */}
+        <div className="hidden h-full flex-col items-center gap-4 border-r border-mist bg-white/70 px-3 py-5 md:flex">
           <Link
             href="/"
             className="grid size-9 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white"
@@ -164,7 +166,7 @@ export default function Sidebar() {
             onClick={toggle}
             aria-label="Expand sidebar"
             title="Expand"
-            className="mt-2 grid size-9 place-items-center rounded-full border border-mist text-ink-soft transition-colors hover:bg-mist"
+            className="mt-auto grid size-9 place-items-center rounded-full border border-mist text-ink-soft transition-colors hover:bg-mist"
           >
             <Chevron open={false} />
           </button>
@@ -174,8 +176,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="md:w-72 md:shrink-0">
-      <div className="rounded-3xl border border-mist bg-white/70 p-5">
+    <aside className="p-4 pb-0 md:sticky md:top-0 md:h-dvh md:w-72 md:shrink-0 md:p-0">
+      <div className="flex flex-col rounded-3xl border border-mist bg-white/70 p-5 md:h-full md:overflow-y-auto md:rounded-none md:border-0 md:border-r">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="grid size-8 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white">
@@ -254,7 +256,7 @@ export default function Sidebar() {
         {authed && (
           <button
             onClick={doLogout}
-            className="mt-4 w-full py-1.5 text-xs font-bold text-ink-soft transition-colors hover:text-ink"
+            className="mt-4 w-full py-1.5 text-xs font-bold text-ink-soft transition-colors hover:text-ink md:mt-auto md:pt-5"
           >
             Log out
           </button>
