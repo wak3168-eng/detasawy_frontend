@@ -1,4 +1,5 @@
-export type AuthUser = { name: string; email: string };
+export type Role = "superadmin" | "reviewer" | "contributor";
+export type AuthUser = { name: string; email: string; role?: Role };
 
 const TOKEN_KEY = "detasawy:token";
 const USER_KEY = "detasawy:user";

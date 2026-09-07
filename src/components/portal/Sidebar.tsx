@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logout } from "@/lib/api";
-import { hasToken } from "@/lib/auth";
+import { getUser, hasToken, type Role } from "@/lib/auth";
 import {
   clearDraft,
   loadDraft,
@@ -14,7 +14,7 @@ import {
 
 const COLLAPSE_KEY = "detasawy:sidebar-collapsed";
 
-const NAV = [
+const BASE_NAV = [
   {
     href: "/contribute",
     label: "Contribute",
@@ -35,6 +35,17 @@ const NAV = [
     ),
   },
 ];
+
+const REVIEW_NAV = {
+  href: "/admin",
+  label: "Review",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5">
+      <path d="M12 3 4 6v6c0 4.5 3.4 7.9 8 9 4.6-1.1 8-4.5 8-9V6l-8-3Z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  ),
+};
 
 function Chevron({ open }: { open: boolean }) {
   return (
@@ -57,12 +68,14 @@ export default function Sidebar() {
   const router = useRouter();
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
   const [authed, setAuthed] = useState(false);
+  const [role, setRole] = useState<Role>("contributor");
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setDraft(loadDraft());
     setAuthed(hasToken());
+    setRole(getUser()?.role ?? "contributor");
     try {
       const stored = localStorage.getItem(COLLAPSE_KEY);
       if (stored !== null) setCollapsed(stored === "1");
@@ -71,8 +84,14 @@ export default function Sidebar() {
       // default stays expanded
     }
     setReady(true);
-    return subscribeDraft(() => setDraft(loadDraft()));
+    return subscribeDraft(() => {
+      setDraft(loadDraft());
+      setRole(getUser()?.role ?? "contributor");
+    });
   }, []);
+
+  const nav =
+    role === "contributor" ? BASE_NAV : [...BASE_NAV, REVIEW_NAV];
 
   const toggle = () => {
     setCollapsed((value) => {
@@ -147,7 +166,7 @@ export default function Sidebar() {
           {avatar}
           <p className="text-sm font-extrabold text-azure-deep">0</p>
           <nav className="flex flex-col gap-2">
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -237,7 +256,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="mt-5 space-y-1">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}

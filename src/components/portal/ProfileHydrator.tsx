@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getMe, saveProfile } from "@/lib/api";
-import { hasToken } from "@/lib/auth";
+import { getToken, hasToken, setAuth } from "@/lib/auth";
 import { loadDraft, saveDraft } from "@/lib/profileDraft";
 import { profileToDraft } from "@/lib/profileSync";
 
@@ -17,6 +17,8 @@ export default function ProfileHydrator() {
     const local = loadDraft();
     getMe()
       .then(({ user, profile }) => {
+        const token = getToken();
+        if (token) setAuth(token, user);
         if (profile.completedAt) {
           saveDraft(
             profileToDraft(profile, user.name || local.name, local.photo),

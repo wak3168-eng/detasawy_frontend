@@ -84,6 +84,47 @@ export function getMe(): Promise<{ user: AuthUser; profile: ServerProfile }> {
   return request("/api/auth/me", {}, true);
 }
 
+export type OverviewStats = {
+  users: number;
+  profilesCompleted: number;
+  tribes: number;
+  languages: number;
+  suggestionsPending: number;
+  prompts: number;
+};
+
+export type StaffSuggestion = {
+  id: number;
+  kind: string;
+  name: string;
+  parentId?: string;
+  parentName?: string;
+  timesSuggested: number;
+  suggestedBy?: string;
+  status: string;
+  candidates: { id: string; name: string }[];
+};
+
+export function getOverview(): Promise<OverviewStats> {
+  return request("/api/admin/overview", {}, true);
+}
+
+export function getSuggestions(status = "pending"): Promise<StaffSuggestion[]> {
+  return request(`/api/admin/suggestions?status=${status}`, {}, true);
+}
+
+export function actOnSuggestion(
+  id: number,
+  action: "approve" | "reject" | "merge",
+  mergeIntoId?: string,
+): Promise<StaffSuggestion> {
+  return request(
+    `/api/admin/suggestions/${id}`,
+    { method: "POST", body: JSON.stringify({ action, mergeIntoId }) },
+    true,
+  );
+}
+
 export type PromptItem = {
   id: number;
   kind: "picture" | "voice";
