@@ -3,7 +3,13 @@
 import Link from "next/link";
 import type { ProfileDraft } from "@/lib/profileDraft";
 
-export default function StepDone({ draft }: { draft: ProfileDraft }) {
+export default function StepDone({
+  draft,
+  nextHref = "/",
+}: {
+  draft: ProfileDraft;
+  nextHref?: string;
+}) {
   const place = [draft.tehsil?.name, draft.district?.name, draft.province?.name]
     .filter(Boolean)
     .join(", ");
@@ -56,10 +62,10 @@ export default function StepDone({ draft }: { draft: ProfileDraft }) {
         Saved on this device. Your profile syncs when accounts open at launch.
       </p>
       <Link
-        href="/"
+        href={nextHref}
         className="block w-full rounded-full bg-azure py-3.5 text-center text-sm font-bold text-white transition-colors hover:bg-azure-deep"
       >
-        Done
+        Continue
       </Link>
     </div>
   );

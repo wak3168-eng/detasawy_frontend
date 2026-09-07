@@ -15,7 +15,7 @@ export default function SignupForm() {
         const data = new FormData(event.currentTarget);
         const name = String(data.get("name") ?? "").trim();
         saveDraft({ ...loadDraft(), name: name || undefined });
-        router.push("/onboarding");
+        router.push("/contribute");
       }}
     >
       <Field label="Name" type="text" name="name" autoComplete="name" required />

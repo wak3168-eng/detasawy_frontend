@@ -47,11 +47,16 @@ export default function Wizard() {
   const [stage, setStage] = useState<Stage>("welcome");
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [ready, setReady] = useState(false);
+  const [nextHref, setNextHref] = useState("/");
 
   useEffect(() => {
     const loaded = loadDraft();
     setDraft(loaded);
     if (loaded.completedAt) setStage("done");
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      setNextHref(next);
+    }
     setReady(true);
   }, []);
 
@@ -268,7 +273,7 @@ export default function Wizard() {
     case "done":
       return (
         <StepShell progress={1} title="You're in." subtitle="Here's your profile.">
-          <StepDone draft={draft} />
+          <StepDone draft={draft} nextHref={nextHref} />
           <button
             onClick={() => {
               clearDraft();

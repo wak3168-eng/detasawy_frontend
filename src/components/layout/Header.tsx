@@ -13,6 +13,9 @@ export default function Header() {
           </span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-semibold text-ink-soft md:flex">
+          <Link href="/contribute" className="transition-colors hover:text-ink">
+            Contribute
+          </Link>
           <a href="/#how-it-works" className="transition-colors hover:text-ink">
             How it works
           </a>
