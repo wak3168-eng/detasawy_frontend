@@ -125,6 +125,43 @@ export function actOnSuggestion(
   );
 }
 
+export type CampaignItem = {
+  id: number;
+  name: string;
+  description?: string;
+  scopeType: string;
+  scopeName?: string;
+  startsAt: string;
+  endsAt: string;
+};
+
+export function getCampaigns(): Promise<CampaignItem[]> {
+  return request("/api/campaigns");
+}
+
+export type AdminUser = {
+  name: string;
+  email: string;
+  role: "superadmin" | "reviewer" | "contributor";
+  joined: string;
+  profileComplete: boolean;
+};
+
+export function searchUsers(q: string): Promise<AdminUser[]> {
+  return request(`/api/admin/users?q=${encodeURIComponent(q)}`, {}, true);
+}
+
+export function setUserRole(
+  email: string,
+  role: "reviewer" | "contributor",
+): Promise<AdminUser> {
+  return request(
+    "/api/admin/users/role",
+    { method: "POST", body: JSON.stringify({ email, role }) },
+    true,
+  );
+}
+
 export type PromptItem = {
   id: number;
   kind: "picture" | "voice";

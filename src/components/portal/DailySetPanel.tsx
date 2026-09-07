@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import CampaignsCard from "@/components/portal/CampaignsCard";
 import PointsCard from "@/components/portal/PointsCard";
 import PromptPreview from "@/components/portal/PromptPreview";
 import ShareCard from "@/components/portal/ShareCard";
@@ -77,6 +78,10 @@ export default function DailySetPanel() {
 
       <div className="mt-5">
         <StatTiles />
+      </div>
+
+      <div className="mt-5">
+        <CampaignsCard />
       </div>
 
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-mist">

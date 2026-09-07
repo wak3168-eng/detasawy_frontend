@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import OverviewStats from "@/components/admin/OverviewStats";
 import ReviewQueue from "@/components/admin/ReviewQueue";
+import TeamManager from "@/components/admin/TeamManager";
 import { getUser, type Role } from "@/lib/auth";
 
 export default function AdminPanel() {
@@ -48,6 +49,11 @@ export default function AdminPanel() {
       <div className="mt-6">
         <ReviewQueue />
       </div>
+      {role === "superadmin" && (
+        <div className="mt-6">
+          <TeamManager />
+        </div>
+      )}
     </div>
   );
 }
