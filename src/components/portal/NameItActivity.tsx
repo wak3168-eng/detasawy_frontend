@@ -108,7 +108,7 @@ export default function NameItActivity({
               That&apos;s all for now.
             </p>
             <p className="mt-1.5 text-sm text-ink-soft">
-              More pictures land soon.
+              You have named every picture we have.
             </p>
             <button
               onClick={onClose}
@@ -125,7 +125,7 @@ export default function NameItActivity({
             <img
               src={prompt.mediaUrl}
               alt={prompt.captionEn ?? "prompt"}
-              className="h-[24dvh] min-h-36 w-full rounded-3xl border border-mist object-cover"
+              className="h-[24dvh] min-h-36 w-full rounded-3xl border border-mist bg-white object-contain p-2"
             />
             {(prompt.licence || prompt.sourceUrl) && (
               <p className="mt-1.5 truncate px-2 text-center text-[10px] text-ink-soft/80">
