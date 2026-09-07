@@ -1,5 +1,11 @@
-export type DraftPlace = { id?: string; name: string; pending?: boolean };
-export type DraftTribe = { id?: string; name: string; pending?: boolean };
+export type DraftPlace = {
+  id?: string;
+  name: string;
+  /** The same name in Pashto, when the contributor supplied it. */
+  ps?: string;
+  pending?: boolean;
+};
+export type DraftTribe = DraftPlace;
 
 export type ProfileDraft = {
   name?: string;

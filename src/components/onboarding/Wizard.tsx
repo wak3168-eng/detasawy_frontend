@@ -181,8 +181,8 @@ export default function Wizard() {
           onPick={(o) =>
             advance("city", { residence: { id: o.id, name: o.name } })
           }
-          onCustom={(name) =>
-            advance("city", { residence: { name, pending: true } })
+          onCustom={(name, ps) =>
+            advance("city", { residence: { name, ps, pending: true } })
           }
           addLabel="Somewhere else? Add it"
         />,
@@ -236,8 +236,8 @@ export default function Wizard() {
               tehsil: undefined,
             })
           }
-          onCustom={(name) =>
-            advance("district", { province: { name, pending: true } })
+          onCustom={(name, ps) =>
+            advance("district", { province: { name, ps, pending: true } })
           }
           addLabel="Somewhere else? Add it"
         />,
@@ -257,8 +257,8 @@ export default function Wizard() {
               tehsil: undefined,
             })
           }
-          onCustom={(name) =>
-            advance("tribe", { district: { name, pending: true } })
+          onCustom={(name, ps) =>
+            advance("tribe", { district: { name, ps, pending: true } })
           }
           onSkip={() => advance("tribe", { district: undefined })}
           skipLabel="Skip"
@@ -273,8 +273,8 @@ export default function Wizard() {
         <StepSelect
           endpoint={`/api/ref/tehsils?district=${draft.district?.id ?? ""}`}
           onPick={(o) => advance("tribe", { tehsil: { id: o.id, name: o.name } })}
-          onCustom={(name) =>
-            advance("tribe", { tehsil: { name, pending: true } })
+          onCustom={(name, ps) =>
+            advance("tribe", { tehsil: { name, ps, pending: true } })
           }
           onSkip={() => advance("tribe", { tehsil: undefined })}
           skipLabel="Skip"
@@ -294,12 +294,12 @@ export default function Wizard() {
         <StepSelect
           endpoint={`/api/ref/tribes${scope}`}
           onPick={(o) =>
-            advance(o.hasChildren ? "lineage" : "language", {
-              tribePath: [{ id: o.id, name: o.name }],
+            advance("lineage", {
+              tribePath: [{ id: o.id, name: o.name, ps: o.ps }],
             })
           }
-          onCustom={(name) =>
-            advance("language", { tribePath: [{ name, pending: true }] })
+          onCustom={(name, ps) =>
+            advance("lineage", { tribePath: [{ name, ps, pending: true }] })
           }
           onSkip={() => advance("language", { tribePath: [] })}
           skipLabel="Prefer not to say"
@@ -312,21 +312,31 @@ export default function Wizard() {
       return shell(
         `Sub-tribe of ${lastTribe?.name}?`,
         "کومه څانګه؟",
-        "Only if you know it.",
+        "Only if you know it — you can add one that isn't listed.",
         <StepSelect
-          endpoint={`/api/ref/tribes?parent=${lastTribe?.id ?? ""}`}
+          // a tribe the contributor just added has no id yet, so there is
+          // nothing to list — the sentinel returns an empty set and the step
+          // becomes a plain "type the sub-tribe" form
+          endpoint={`/api/ref/tribes?parent=${lastTribe?.id ?? "__new__"}`}
+          emptyPlaceholder={`Sub-tribe of ${lastTribe?.name ?? "your tribe"}`}
           onPick={(o) => {
-            const path = [...(draft.tribePath ?? []), { id: o.id, name: o.name }];
-            advance(o.hasChildren ? "lineage" : "language", { tribePath: path });
+            const path = [
+              ...(draft.tribePath ?? []),
+              { id: o.id, name: o.name, ps: o.ps },
+            ];
+            advance("lineage", { tribePath: path });
           }}
-          onCustom={(name) =>
-            advance("language", {
-              tribePath: [...(draft.tribePath ?? []), { name, pending: true }],
+          onCustom={(name, ps) =>
+            advance("lineage", {
+              tribePath: [
+                ...(draft.tribePath ?? []),
+                { name, ps, pending: true },
+              ],
             })
           }
           onSkip={() => advance("language", {})}
           skipLabel="That's as far as I know"
-          addLabel="Can't find it? Add yours"
+          addLabel={`Add a sub-tribe of ${lastTribe?.name ?? "it"}`}
         />,
       );
 

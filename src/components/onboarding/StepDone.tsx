@@ -15,11 +15,16 @@ export default function StepDone({
   const place = [draft.tehsil?.name, draft.district?.name, draft.province?.name]
     .filter(Boolean)
     .join(", ");
+  const livesIn = draft.residence
+    ? [draft.city, draft.residence.name].filter(Boolean).join(", ")
+    : null;
   const tribeChain = (draft.tribePath ?? []).map((t) => t.name).join(" › ");
-  const hasPending =
+  const added =
     (draft.tribePath ?? []).some((t) => t.pending) ||
+    draft.province?.pending ||
     draft.district?.pending ||
-    draft.tehsil?.pending;
+    draft.tehsil?.pending ||
+    draft.residence?.pending;
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
@@ -45,7 +50,13 @@ export default function StepDone({
           <div>
             <p className="text-lg font-extrabold">{draft.name ?? "Contributor"}</p>
             {place && <p className="text-sm text-ink-soft">{place}</p>}
-            {draft.city && <p className="text-sm text-ink-soft">{draft.city}</p>}
+            {livesIn ? (
+              <p className="text-xs text-ink-soft">Lives in {livesIn}</p>
+            ) : (
+              draft.city && (
+                <p className="text-sm text-ink-soft">{draft.city}</p>
+              )
+            )}
           </div>
         </div>
         {tribeChain && (
@@ -59,9 +70,9 @@ export default function StepDone({
           </p>
         )}
       </div>
-      {hasPending && (
+      {added && (
         <p className="text-center text-xs text-ink-soft">
-          Entries you added are marked for review — thank you for growing the
+          What you added is live for everyone now — thank you for growing the
           list.
         </p>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PashtoInput from "@/components/input/PashtoInput";
 import { findSimilar, matchesQuery } from "@/lib/nameMatch";
 import { fetchRef } from "@/lib/refClient";
 import type { RefOption } from "@/lib/refTypes";
@@ -16,7 +17,7 @@ export default function StepSelect({
 }: {
   endpoint: string;
   onPick: (option: RefOption) => void;
-  onCustom?: (name: string) => void;
+  onCustom?: (name: string, ps?: string) => void;
   onSkip?: () => void;
   skipLabel?: string;
   addLabel?: string;
@@ -28,6 +29,7 @@ export default function StepSelect({
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [addValue, setAddValue] = useState("");
+  const [addPashto, setAddPashto] = useState("");
   const [suggestion, setSuggestion] = useState<RefOption | null>(null);
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function StepSelect({
     setQuery("");
     setAdding(false);
     setAddValue("");
+    setAddPashto("");
     setSuggestion(null);
     fetchRef(endpoint).then(
       (data) => alive && setOptions(data),
@@ -47,12 +50,15 @@ export default function StepSelect({
     };
   }, [endpoint]);
 
+  const addNow = () =>
+    onCustom?.(addValue.trim(), addPashto.trim() || undefined);
+
   const submitCustom = () => {
     const value = addValue.trim();
     if (!value || !onCustom) return;
     const match = findSimilar(value, options ?? []);
     if (match) setSuggestion(match);
-    else onCustom(value);
+    else addNow();
   };
 
   if (failed) {
@@ -88,8 +94,13 @@ export default function StepSelect({
           placeholder={emptyPlaceholder}
           className="w-full rounded-2xl border border-mist bg-white/70 px-5 py-4 text-sm outline-none transition-colors focus:border-azure"
         />
+        <PashtoInput
+          value={addPashto}
+          onChange={setAddPashto}
+          placeholder="په پښتو (اختیاري)"
+        />
         <button
-          onClick={() => addValue.trim() && onCustom(addValue.trim())}
+          onClick={() => addValue.trim() && addNow()}
           className="w-full rounded-full bg-azure py-3.5 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-40"
           disabled={!addValue.trim()}
         >
@@ -127,7 +138,7 @@ export default function StepSelect({
           <button
             onClick={() => {
               setSuggestion(null);
-              onCustom?.(addValue.trim());
+              addNow();
             }}
             className="w-full rounded-full border border-sky py-3 text-sm font-bold text-azure-deep transition-colors hover:bg-mist"
           >
@@ -177,36 +188,42 @@ export default function StepSelect({
       <div className="mt-auto space-y-1 pt-2">
         {onCustom &&
           (adding ? (
-            <div className="flex gap-2">
+            <div className="space-y-2 rounded-2xl border border-sky bg-mist/30 p-3">
               <input
                 autoFocus
                 value={addValue}
                 onChange={(e) => setAddValue(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitCustom()}
-                placeholder="Type the name"
-                className="min-w-0 flex-1 rounded-2xl border border-mist bg-white/70 px-4 py-3 text-sm outline-none transition-colors focus:border-azure"
+                placeholder="Name in English"
+                className="w-full rounded-2xl border border-mist bg-white/80 px-4 py-3 text-sm outline-none transition-colors focus:border-azure"
+              />
+              <PashtoInput
+                value={addPashto}
+                onChange={setAddPashto}
+                placeholder="په پښتو (اختیاري)"
               />
               <button
                 onClick={submitCustom}
                 disabled={!addValue.trim()}
-                className="rounded-full bg-azure px-5 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-40"
+                className="w-full rounded-full bg-azure py-3 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-40"
               >
                 Add
               </button>
+              <p className="text-center text-[11px] text-ink-soft">
+                Goes live for everyone right away.
+              </p>
             </div>
           ) : (
             <button
               onClick={() => setAdding(true)}
-              className="w-full py-2 text-sm font-bold text-azure-deep"
+              className="flex w-full items-center justify-center gap-1.5 py-2 text-sm font-bold text-azure-deep"
             >
+              <span className="grid size-5 place-items-center rounded-full bg-azure text-xs text-white">
+                +
+              </span>
               {addLabel}
             </button>
           ))}
-        {onCustom && adding && (
-          <p className="text-center text-[11px] text-ink-soft">
-            What you add goes live for everyone right away.
-          </p>
-        )}
         {onSkip && skipLabel && (
           <button onClick={onSkip} className="w-full py-2 text-sm font-bold text-ink-soft">
             {skipLabel}
