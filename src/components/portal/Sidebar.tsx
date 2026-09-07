@@ -48,6 +48,18 @@ const REVIEW_NAV = {
   ),
 };
 
+const CAMPAIGN_NAV = {
+  href: "/admin",
+  label: "Campaigns",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5">
+      <path d="m3 11 14-5v12L3 13v-2Z" />
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+      <path d="M17 8a5 5 0 0 1 0 6" />
+    </svg>
+  ),
+};
+
 function Chevron({ open }: { open: boolean }) {
   return (
     <svg
@@ -92,7 +104,9 @@ export default function Sidebar() {
   }, []);
 
   const nav =
-    role === "contributor" ? BASE_NAV : [...BASE_NAV, REVIEW_NAV];
+    role === "contributor"
+      ? BASE_NAV
+      : [...BASE_NAV, role === "campaign" ? CAMPAIGN_NAV : REVIEW_NAV];
 
   const toggle = () => {
     setCollapsed((value) => {

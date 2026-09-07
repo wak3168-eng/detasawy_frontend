@@ -44,6 +44,38 @@ export default function AdminPanel() {
 
   const isSuper = role === "superadmin";
 
+  if (role === "campaign") {
+    return (
+      <div>
+        <h1 className="text-2xl font-extrabold tracking-tight">
+          Campaigns &amp; content
+        </h1>
+        <p className="mt-1.5 text-sm text-ink-soft">
+          Stock the pictures and voice notes, run the drives.
+        </p>
+        <div className="mt-5">
+          <OverviewStats />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {QUICK_LINKS.filter((l) => l.label !== "All users").map((link) => (
+            <a
+              key={link.label}
+              href={`${API_BASE}${link.path}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-sky px-4 py-2 text-xs font-bold text-azure-deep transition-colors hover:bg-mist"
+            >
+              {link.label} ↗
+            </a>
+          ))}
+        </div>
+        <p className="mt-4 text-xs text-ink-soft">
+          Uploads open in the Django admin with your campaign-manager access.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-extrabold tracking-tight">

@@ -6,8 +6,18 @@ import { searchUsers, setUserRole, type AdminUser } from "@/lib/api";
 const ROLE_STYLES: Record<AdminUser["role"], string> = {
   superadmin: "bg-azure text-white",
   reviewer: "bg-sky text-ink",
+  campaign: "bg-[#e0b53f]/30 text-ink",
   contributor: "bg-mist text-azure-deep",
 };
+
+const ROLE_ACTIONS: Array<{
+  role: "reviewer" | "campaign" | "contributor";
+  label: string;
+}> = [
+  { role: "reviewer", label: "Make reviewer" },
+  { role: "campaign", label: "Make campaign manager" },
+  { role: "contributor", label: "Make contributor" },
+];
 
 export default function TeamManager() {
   const [query, setQuery] = useState("");
@@ -24,8 +34,10 @@ export default function TeamManager() {
     }
   };
 
-  const changeRole = async (user: AdminUser) => {
-    const role = user.role === "reviewer" ? "contributor" : "reviewer";
+  const changeRole = async (
+    user: AdminUser,
+    role: "reviewer" | "campaign" | "contributor",
+  ) => {
     setBusyEmail(user.email);
     setError(null);
     try {
@@ -86,17 +98,17 @@ export default function TeamManager() {
               >
                 {user.role}
               </span>
-              {user.role !== "superadmin" && (
-                <button
-                  disabled={busyEmail === user.email}
-                  onClick={() => changeRole(user)}
-                  className="rounded-full border border-sky px-4 py-1.5 text-xs font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
-                >
-                  {user.role === "reviewer"
-                    ? "Move to contributor"
-                    : "Promote to reviewer"}
-                </button>
-              )}
+              {user.role !== "superadmin" &&
+                ROLE_ACTIONS.filter((a) => a.role !== user.role).map((a) => (
+                  <button
+                    key={a.role}
+                    disabled={busyEmail === user.email}
+                    onClick={() => changeRole(user, a.role)}
+                    className="rounded-full border border-sky px-3.5 py-1.5 text-xs font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
+                  >
+                    {a.label}
+                  </button>
+                ))}
             </div>
           ))}
         </div>

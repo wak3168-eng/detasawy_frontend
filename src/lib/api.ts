@@ -142,7 +142,7 @@ export function getCampaigns(): Promise<CampaignItem[]> {
 export type AdminUser = {
   name: string;
   email: string;
-  role: "superadmin" | "reviewer" | "contributor";
+  role: "superadmin" | "reviewer" | "campaign" | "contributor";
   joined: string;
   profileComplete: boolean;
 };
@@ -153,7 +153,7 @@ export function searchUsers(q: string): Promise<AdminUser[]> {
 
 export function setUserRole(
   email: string,
-  role: "reviewer" | "contributor",
+  role: "reviewer" | "campaign" | "contributor",
 ): Promise<AdminUser> {
   return request(
     "/api/admin/users/role",
