@@ -37,13 +37,15 @@ export default function PashtoInput({
         placeholder={placeholder}
         className="w-full rounded-2xl border border-mist bg-white/80 px-4 py-3 text-center font-naskh text-xl outline-none transition-colors focus:border-azure"
       />
-      <div dir="rtl" className="mt-2 flex flex-wrap justify-center gap-1.5">
+      <div dir="rtl" className="mt-2 grid grid-cols-6 gap-1.5">
         {ASSIST_LETTERS.map((letter) => (
           <button
             key={letter}
             type="button"
+            lang="ps"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => insert(letter)}
-            className="grid size-9 place-items-center rounded-xl border border-mist bg-ice font-naskh text-lg font-bold text-azure-deep transition-colors hover:border-azure"
+            className="grid h-10 select-none place-items-center rounded-xl border border-mist bg-white/70 font-naskh text-xl font-bold text-azure-deep transition-colors [touch-action:manipulation] hover:border-azure active:bg-mist"
           >
             {letter}
           </button>

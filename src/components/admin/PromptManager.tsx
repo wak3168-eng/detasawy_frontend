@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   getStaffPrompts,
+  linkPrompt,
   setPromptActive,
   uploadPrompt,
   type StaffPrompt,
@@ -10,6 +11,10 @@ import {
 
 export default function PromptManager() {
   const [kind, setKind] = useState<"picture" | "voice">("picture");
+  const [source, setSource] = useState<"file" | "link">("file");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [licence, setLicence] = useState("");
   const [captionEn, setCaptionEn] = useState("");
   const [captionPs, setCaptionPs] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,22 +28,37 @@ export default function PromptManager() {
 
   const upload = async () => {
     const media = fileRef.current?.files?.[0];
-    if (!media) {
+    const captions = {
+      captionEn: captionEn.trim() || undefined,
+      captionPs: captionPs.trim() || undefined,
+    };
+    if (source === "file" && !media) {
       setError(`Choose a ${kind === "picture" ? "photo" : "audio"} file first.`);
+      return;
+    }
+    if (source === "link" && !/^https?:\/\//.test(mediaUrl.trim())) {
+      setError("Paste a full media link (https://…).");
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      const created = await uploadPrompt({
-        kind,
-        media,
-        captionEn: captionEn.trim() || undefined,
-        captionPs: captionPs.trim() || undefined,
-      });
+      const created =
+        source === "file" && media
+          ? await uploadPrompt({ kind, media, ...captions })
+          : await linkPrompt({
+              kind,
+              mediaUrl: mediaUrl.trim(),
+              sourceUrl: sourceUrl.trim() || undefined,
+              licence: licence.trim() || undefined,
+              ...captions,
+            });
       setPrompts((list) => [created, ...(list ?? [])]);
       setCaptionEn("");
       setCaptionPs("");
+      setMediaUrl("");
+      setSourceUrl("");
+      setLicence("");
       if (fileRef.current) fileRef.current.value = "";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
@@ -75,13 +95,55 @@ export default function PromptManager() {
           </button>
         ))}
       </div>
+      <div className="mt-2.5 flex gap-2">
+        {(["file", "link"] as const).map((option) => (
+          <button
+            key={option}
+            onClick={() => setSource(option)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+              source === option
+                ? "bg-ink text-white"
+                : "border border-mist text-ink-soft hover:bg-mist"
+            }`}
+          >
+            {option === "file" ? "Upload a file" : "Paste a link"}
+          </button>
+        ))}
+      </div>
       <div className="mt-3 space-y-2.5">
-        <input
-          ref={fileRef}
-          type="file"
-          accept={kind === "picture" ? "image/*" : "audio/*"}
-          className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-azure file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-white"
-        />
+        {source === "file" ? (
+          <input
+            ref={fileRef}
+            type="file"
+            accept={kind === "picture" ? "image/*" : "audio/*"}
+            className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-azure file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-white"
+          />
+        ) : (
+          <>
+            <input
+              value={mediaUrl}
+              onChange={(e) => setMediaUrl(e.target.value)}
+              placeholder={
+                kind === "picture"
+                  ? "Image link (https://…)"
+                  : "Audio link (https://…)"
+              }
+              className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm outline-none transition-colors focus:border-azure"
+            />
+            <input
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+              placeholder="Source page (optional)"
+              className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm outline-none transition-colors focus:border-azure"
+            />
+            <input
+              value={licence}
+              onChange={(e) => setLicence(e.target.value)}
+              placeholder="Licence, e.g. CC BY-SA 4.0 (optional)"
+              className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm outline-none transition-colors focus:border-azure"
+            />
+          </>
+        )}
         <input
           value={captionEn}
           onChange={(e) => setCaptionEn(e.target.value)}
@@ -103,7 +165,7 @@ export default function PromptManager() {
           onClick={upload}
           className="w-full rounded-full bg-azure py-2.5 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
         >
-          {busy ? "Uploading…" : "Upload"}
+          {busy ? "Saving…" : source === "file" ? "Upload" : "Add link"}
         </button>
         {error && (
           <p className="text-center text-xs font-semibold text-[#b4552d]">
@@ -142,8 +204,9 @@ export default function PromptManager() {
               <p className="truncate text-sm font-bold">
                 {prompt.captionEn || prompt.captionPs || `#${prompt.id}`}
               </p>
-              <p className="text-[11px] text-ink-soft">
+              <p className="truncate text-[11px] text-ink-soft">
                 served ×{prompt.servedCount}
+                {prompt.licence ? ` · ${prompt.licence}` : ""}
               </p>
             </div>
             <button

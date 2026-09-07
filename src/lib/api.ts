@@ -170,6 +170,7 @@ export type StaffPrompt = {
   captionPs?: string;
   active: boolean;
   servedCount: number;
+  licence?: string;
   createdAt: string;
 };
 
@@ -199,6 +200,21 @@ export function uploadPrompt(input: {
     if (!res.ok) throw new ApiError(extractError(data, res.status));
     return data as StaffPrompt;
   });
+}
+
+export function linkPrompt(input: {
+  kind: "picture" | "voice";
+  mediaUrl: string;
+  sourceUrl?: string;
+  licence?: string;
+  captionEn?: string;
+  captionPs?: string;
+}): Promise<StaffPrompt> {
+  return request(
+    "/api/admin/prompts",
+    { method: "POST", body: JSON.stringify(input) },
+    true,
+  );
 }
 
 export function setPromptActive(
@@ -246,6 +262,8 @@ export type PromptItem = {
   mediaUrl: string;
   captionEn?: string;
   captionPs?: string;
+  sourceUrl?: string;
+  licence?: string;
 };
 
 export function getPrompts(
