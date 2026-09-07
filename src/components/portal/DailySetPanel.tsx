@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import PointsCard from "@/components/portal/PointsCard";
+import ShareCard from "@/components/portal/ShareCard";
+import StatTiles from "@/components/portal/StatTiles";
 import {
   loadDraft,
   subscribeDraft,
@@ -65,7 +68,11 @@ export default function DailySetPanel() {
         Your daily set &mdash; 15 quick contributions.
       </p>
 
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-mist">
+      <div className="mt-5">
+        <StatTiles />
+      </div>
+
+      <div className="mt-5 h-2 overflow-hidden rounded-full bg-mist">
         <div className="h-full w-0 rounded-full bg-azure" />
       </div>
       <p className="mt-1.5 text-xs font-bold text-ink-soft">0 / 15 today</p>
@@ -88,6 +95,11 @@ export default function DailySetPanel() {
             </span>
           </div>
         ))}
+      </div>
+
+      <div className="mt-6 grid gap-3.5 lg:grid-cols-2">
+        <PointsCard />
+        <ShareCard />
       </div>
 
       <p className="mt-6 text-center text-xs text-ink-soft">
