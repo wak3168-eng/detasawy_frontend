@@ -94,7 +94,7 @@ export default function Sidebar() {
 
         <div className="mt-5 rounded-2xl border border-sky/60 bg-mist/40 p-4 text-center">
           <p className="text-3xl font-extrabold text-azure-deep">0</p>
-          <p className="text-xs font-bold">Kaar Points</p>
+          <p className="text-xs font-bold">Kar Points</p>
           <p className="mt-1 text-[11px] text-ink-soft">
             Counting starts at launch
           </p>

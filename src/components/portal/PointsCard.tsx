@@ -1,14 +1,14 @@
 const STEPS = [
   "You contribute — words, voice, replies.",
   "The community checks each other's work.",
-  "Accepted work earns Kaar Points.",
+  "Accepted work earns Kar Points.",
   "Points unlock the datasets you helped build.",
 ];
 
 export default function PointsCard() {
   return (
     <div className="rounded-3xl border border-mist bg-white/70 p-5">
-      <h2 className="font-extrabold">How Kaar Points work</h2>
+      <h2 className="font-extrabold">How Kar Points work</h2>
       <ol className="mt-3 space-y-2.5">
         {STEPS.map((step, i) => (
           <li key={step} className="flex items-start gap-2.5 text-sm text-ink-soft">

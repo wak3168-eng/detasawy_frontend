@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PointsCard from "@/components/portal/PointsCard";
+import PromptPreview from "@/components/portal/PromptPreview";
 import ShareCard from "@/components/portal/ShareCard";
 import StatTiles from "@/components/portal/StatTiles";
 import {
@@ -16,21 +17,27 @@ const ACTIVITIES = [
     count: 10,
     title: "Name it",
     body: "See a picture, give its Pashto name.",
+    kind: "picture" as const,
   },
   {
     count: 3,
     title: "Say it",
     body: "See a picture, record the word aloud.",
+    kind: "picture" as const,
   },
   {
     count: 2,
     title: "Reply",
     body: "Answer in your own dialect.",
+    kind: "voice" as const,
   },
 ];
 
 export default function DailySetPanel() {
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
+  const [preview, setPreview] = useState<(typeof ACTIVITIES)[number] | null>(
+    null,
+  );
 
   useEffect(() => {
     setDraft(loadDraft());
@@ -62,7 +69,7 @@ export default function DailySetPanel() {
   return (
     <div>
       <h1 className="text-2xl font-extrabold tracking-tight">
-        {draft.name ? `Salaam, ${draft.name} 👋` : "Salaam 👋"}
+        {draft.name ? `Hello, ${draft.name} 👋` : "Hello 👋"}
       </h1>
       <p className="mt-1.5 text-sm text-ink-soft">
         Your daily set &mdash; 15 quick contributions.
@@ -79,9 +86,10 @@ export default function DailySetPanel() {
 
       <div className="mt-6 space-y-3.5">
         {ACTIVITIES.map((activity) => (
-          <div
+          <button
             key={activity.title}
-            className="flex items-center gap-4 rounded-3xl border border-mist bg-white/70 p-5"
+            onClick={() => setPreview(activity)}
+            className="flex w-full items-center gap-4 rounded-3xl border border-mist bg-white/70 p-5 text-left transition-colors hover:border-azure"
           >
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-mist text-lg font-extrabold text-azure-deep">
               {activity.count}
@@ -91,11 +99,19 @@ export default function DailySetPanel() {
               <p className="text-xs text-ink-soft">{activity.body}</p>
             </div>
             <span className="shrink-0 rounded-full bg-mist px-3.5 py-1.5 text-[11px] font-bold text-azure-deep">
-              At launch
+              Preview
             </span>
-          </div>
+          </button>
         ))}
       </div>
+
+      {preview && (
+        <PromptPreview
+          title={preview.title}
+          kind={preview.kind}
+          onClose={() => setPreview(null)}
+        />
+      )}
 
       <div className="mt-6 grid gap-3.5 lg:grid-cols-2">
         <PointsCard />

@@ -84,6 +84,21 @@ export function getMe(): Promise<{ user: AuthUser; profile: ServerProfile }> {
   return request("/api/auth/me", {}, true);
 }
 
+export type PromptItem = {
+  id: number;
+  kind: "picture" | "voice";
+  mediaUrl: string;
+  captionEn?: string;
+  captionPs?: string;
+};
+
+export function getPrompts(
+  kind: "picture" | "voice",
+  count = 5,
+): Promise<PromptItem[]> {
+  return request(`/api/prompts?kind=${kind}&count=${count}`, {}, true);
+}
+
 export function saveProfile(draft: ProfileDraft): Promise<ServerProfile> {
   return request(
     "/api/profile",

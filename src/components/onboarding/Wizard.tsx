@@ -115,7 +115,7 @@ export default function Wizard() {
   switch (stage) {
     case "welcome":
       return shell(
-        draft.name ? `Salaam, ${draft.name} 👋` : "Salaam 👋",
+        draft.name ? `Hello, ${draft.name} 👋` : "Hello 👋",
         "A few quick questions — about 30 seconds.",
         <button
           onClick={() => advance("country", {})}
