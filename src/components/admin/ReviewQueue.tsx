@@ -67,6 +67,12 @@ function SuggestionCard({
       {suggestion.suggestedBy && (
         <p className="mt-1 text-xs text-ink-soft">by {suggestion.suggestedBy}</p>
       )}
+      {suggestion.mergeIntoName && !merging && (
+        <p className="mt-2 rounded-xl bg-[#f5ead8] px-3 py-2 text-xs font-semibold text-[#8a5a1f]">
+          Looks like existing “{suggestion.mergeIntoName}” — merging keeps one
+          spelling and remembers this one.
+        </p>
+      )}
       {suggestion.candidates.length > 0 && !merging && (
         <p className="mt-2 text-xs text-ink-soft">
           Similar existing:{" "}
@@ -111,13 +117,32 @@ function SuggestionCard({
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            disabled={busy}
-            onClick={() => act("approve")}
-            className="rounded-full bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
-          >
-            Approve
-          </button>
+          {suggestion.mergeIntoId ? (
+            <>
+              <button
+                disabled={busy}
+                onClick={() => act("merge", suggestion.mergeIntoId!)}
+                className="rounded-full bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
+              >
+                Merge into {suggestion.mergeIntoName}
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => act("approve")}
+                className="rounded-full border border-sky px-5 py-2 text-sm font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
+              >
+                Approve as new
+              </button>
+            </>
+          ) : (
+            <button
+              disabled={busy}
+              onClick={() => act("approve")}
+              className="rounded-full bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
+            >
+              Approve
+            </button>
+          )}
           {suggestion.kind === "tribe" && (
             <button
               disabled={busy}

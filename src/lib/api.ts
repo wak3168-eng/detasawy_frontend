@@ -113,6 +113,8 @@ export type StaffSuggestion = {
   suggestedBy?: string;
   status: string;
   candidates: { id: string; name: string }[];
+  mergeIntoId?: string | null;
+  mergeIntoName?: string | null;
 };
 
 export function getOverview(): Promise<OverviewStats> {

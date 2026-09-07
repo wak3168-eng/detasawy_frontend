@@ -41,11 +41,37 @@ function levenshtein(a: string, b: string): number {
   return dist[rows - 1][cols - 1];
 }
 
+// Transliteration families of the generic lineage suffixes. Spellings within
+// a family are the same word; Khel and Zai are NOT interchangeable.
+const SUFFIX_FAMILIES: Record<string, string> = {
+  khel: "khel", khail: "khel", kheil: "khel", khell: "khel",
+  zai: "zai", zay: "zai", zi: "zai", zey: "zai",
+};
+
+function splitSuffix(normalized: string): { head: string; family: string } {
+  const parts = normalized.split(" ");
+  const family = parts.length > 1 ? SUFFIX_FAMILIES[parts[parts.length - 1]] : undefined;
+  if (family) {
+    return { head: parts.slice(0, -1).join(" "), family };
+  }
+  return { head: normalized, family: "" };
+}
+
+function compatible(a: { family: string }, b: { family: string }): boolean {
+  return a.family === b.family || !a.family || !b.family;
+}
+
 export function matchesQuery(option: RefOption, query: string): boolean {
   const q = normalizeName(query);
   if (!q) return true;
+  const qs = splitSuffix(q);
   const names = [option.name, option.ps ?? "", ...(option.aliases ?? [])];
-  return names.some((n) => normalizeName(n).includes(q));
+  return names.some((name) => {
+    const n = normalizeName(name);
+    if (n.includes(q)) return true;
+    const ns = splitSuffix(n);
+    return compatible(ns, qs) && ns.head.includes(qs.head);
+  });
 }
 
 /** Finds an existing option the input likely duplicates (exact or near spelling). */
@@ -55,19 +81,30 @@ export function findSimilar(
 ): RefOption | null {
   const q = normalizeName(input);
   if (!q) return null;
-  let best: { option: RefOption; distance: number } | null = null;
+  const qs = splitSuffix(q);
+  const best: { current: { option: RefOption; distance: number } | null } = {
+    current: null,
+  };
+  const consider = (option: RefOption, a: string, b: string): boolean => {
+    if (a === b) return true;
+    const distance = levenshtein(a, b);
+    const limit = b.length <= 4 ? 1 : 2;
+    if (distance <= limit && (!best.current || distance < best.current.distance)) {
+      best.current = { option, distance };
+    }
+    return false;
+  };
   for (const option of options) {
     const names = [option.name, option.ps ?? "", ...(option.aliases ?? [])];
     for (const name of names) {
       const n = normalizeName(name);
       if (!n) continue;
-      if (n === q) return option;
-      const distance = levenshtein(n, q);
-      const limit = q.length <= 4 ? 1 : 2;
-      if (distance <= limit && (!best || distance < best.distance)) {
-        best = { option, distance };
+      if (consider(option, n, q)) return option;
+      const ns = splitSuffix(n);
+      if (compatible(ns, qs) && (ns.family || qs.family)) {
+        if (consider(option, ns.head, qs.head)) return option;
       }
     }
   }
-  return best?.option ?? null;
+  return best.current?.option ?? null;
 }
