@@ -34,6 +34,19 @@ export default function WordTable({ promptId }: { promptId: number }) {
               ×{group.count}
             </span>
           </p>
+          {group.variants && group.variants.length > 0 && (
+            <p className="mt-0.5 text-[11px] text-ink-soft">
+              also written{" "}
+              {group.variants.map((v, i) => (
+                <span key={v.word}>
+                  {i > 0 && ", "}
+                  <span dir="rtl" lang="ps" className="font-naskh">
+                    {v.word}
+                  </span>
+                </span>
+              ))}
+            </p>
+          )}
           <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[320px] text-left text-sm">
               <thead>

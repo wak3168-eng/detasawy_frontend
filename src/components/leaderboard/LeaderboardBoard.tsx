@@ -34,7 +34,7 @@ export default function LeaderboardBoard({
           ))}
         </div>
         <p className="mt-6 text-center text-sm text-ink-soft">
-          The race starts at launch. Every accepted word scores for your
+          No scores yet — be the first. Every word you add scores for your
           district.
         </p>
         {showCta && (

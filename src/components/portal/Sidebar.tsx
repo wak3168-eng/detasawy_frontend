@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminSidebar from "@/components/portal/AdminSidebar";
-import { logout } from "@/lib/api";
+import { getMyStats, logout } from "@/lib/api";
 import { getUser, hasToken, type Role } from "@/lib/auth";
 import {
   clearDraft,
@@ -84,11 +84,15 @@ export default function Sidebar() {
   const [role, setRole] = useState<Role>("contributor");
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
+  const [points, setPoints] = useState<number | null>(null);
 
   useEffect(() => {
     setDraft(loadDraft());
     setAuthed(hasToken());
     setRole(getUser()?.role ?? "contributor");
+    if (hasToken()) {
+      getMyStats().then((s) => setPoints(s.points), () => {});
+    }
     try {
       const stored = localStorage.getItem(COLLAPSE_KEY);
       if (stored !== null) setCollapsed(stored === "1");
@@ -267,10 +271,12 @@ export default function Sidebar() {
         )}
 
         <div className="mt-5 rounded-2xl border border-sky/60 bg-mist/40 p-4 text-center">
-          <p className="text-3xl font-extrabold text-azure-deep">0</p>
+          <p className="text-3xl font-extrabold text-azure-deep">
+            {points ?? 0}
+          </p>
           <p className="text-xs font-bold">Kar Points</p>
           <p className="mt-1 text-[11px] text-ink-soft">
-            Counting starts at launch
+            {points ? "One point per word" : "Add your first word"}
           </p>
         </div>
 

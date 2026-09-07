@@ -5,6 +5,7 @@ export default function StepShell({
   progress,
   onBack,
   title,
+  titlePs,
   subtitle,
   audioSrc,
   children,
@@ -12,6 +13,8 @@ export default function StepShell({
   progress: number;
   onBack?: () => void;
   title: string;
+  /** Pashto rendering of the question, shown under the English one. */
+  titlePs?: string;
   subtitle?: string;
   audioSrc?: string;
   children: React.ReactNode;
@@ -49,6 +52,15 @@ export default function StepShell({
           <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
           {audioSrc && <PlayQuestion src={audioSrc} />}
         </div>
+        {titlePs && (
+          <p
+            dir="rtl"
+            lang="ps"
+            className="mt-1 font-naskh text-lg text-azure-deep"
+          >
+            {titlePs}
+          </p>
+        )}
         {subtitle && <p className="mt-1.5 text-sm text-ink-soft">{subtitle}</p>}
       </div>
       <div className="mt-6 flex-1">{children}</div>

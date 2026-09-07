@@ -2,6 +2,7 @@ import type { DraftPlace, DraftTribe, ProfileDraft } from "@/lib/profileDraft";
 
 export type ServerProfile = {
   country: DraftPlace | null;
+  residence: DraftPlace | null;
   province: DraftPlace | null;
   district: DraftPlace | null;
   tehsil: DraftPlace | null;
@@ -9,11 +10,15 @@ export type ServerProfile = {
   tribePath: DraftTribe[] | null;
   language: string;
   completedAt: string | null;
+  photoUrl?: string | null;
 };
 
 export function draftToPayload(draft: ProfileDraft) {
   return {
-    country: draft.country ?? null,
+    // for the diaspora the origin country is the one that shapes the dialect,
+    // so it is what we store as `country`; where they live goes to `residence`
+    country: draft.origin ?? draft.country ?? null,
+    residence: draft.residence ?? null,
     province: draft.province ?? null,
     district: draft.district ?? null,
     tehsil: draft.tehsil ?? null,
@@ -29,10 +34,16 @@ export function profileToDraft(
   name?: string,
   photo?: string,
 ): ProfileDraft {
+  const abroad = profile.residence ?? undefined;
   return {
     name,
-    photo,
-    country: profile.country ?? undefined,
+    // the stored photo is the source of truth; the local copy is a fallback
+    photo: profile.photoUrl ?? photo,
+    country: abroad
+      ? { id: "overseas", name: "Overseas" }
+      : (profile.country ?? undefined),
+    residence: abroad,
+    origin: abroad ? (profile.country ?? undefined) : undefined,
     province: profile.province ?? undefined,
     district: profile.district ?? undefined,
     tehsil: profile.tehsil ?? undefined,

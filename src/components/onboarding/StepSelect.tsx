@@ -133,6 +133,9 @@ export default function StepSelect({
           >
             No, add &ldquo;{addValue.trim()}&rdquo;
           </button>
+          <p className="pt-1 text-center text-[11px] text-ink-soft">
+            What you add goes live for everyone right away.
+          </p>
         </div>
       </div>
     );
@@ -199,6 +202,11 @@ export default function StepSelect({
               {addLabel}
             </button>
           ))}
+        {onCustom && adding && (
+          <p className="text-center text-[11px] text-ink-soft">
+            What you add goes live for everyone right away.
+          </p>
+        )}
         {onSkip && skipLabel && (
           <button onClick={onSkip} className="w-full py-2 text-sm font-bold text-ink-soft">
             {skipLabel}

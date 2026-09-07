@@ -1,3 +1,5 @@
+import { API_BASE } from "@/lib/apiBase";
+
 export type LandingStat = {
   value: number;
   suffix: string;
@@ -10,16 +12,27 @@ export type TickerItem = {
 };
 
 /**
- * Pre-launch these are mission numbers, not live counts. Once the Django
- * backend ships its cached public stats endpoint, this function swaps to
- * fetching it and the landing page becomes live without UI changes.
+ * Live counts from the community, with mission numbers standing in for
+ * dimensions the data does not measure yet (speaker population).
  */
 export async function getLandingStats(): Promise<LandingStat[]> {
+  let live: {
+    contributors: number;
+    uniqueWords: number;
+    pictures: number;
+    districts: number;
+  } | null = null;
+  try {
+    const res = await fetch(`${API_BASE}/api/stats`);
+    if (res.ok) live = await res.json();
+  } catch {
+    live = null;
+  }
   return [
+    { value: live?.uniqueWords ?? 0, suffix: "", label: "words collected" },
+    { value: live?.contributors ?? 0, suffix: "", label: "contributors" },
+    { value: live?.pictures ?? 0, suffix: "", label: "pictures to name" },
     { value: 40, suffix: "M+", label: "Pashto speakers worldwide" },
-    { value: 100, suffix: "+", label: "districts & provinces to cover" },
-    { value: 7, suffix: "", label: "open datasets planned" },
-    { value: 11, suffix: "", label: "ways to contribute" },
   ];
 }
 

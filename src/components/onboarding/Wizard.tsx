@@ -7,7 +7,7 @@ import StepPhoto from "@/components/onboarding/StepPhoto";
 import StepSelect from "@/components/onboarding/StepSelect";
 import StepShell from "@/components/onboarding/StepShell";
 import StepText from "@/components/onboarding/StepText";
-import { saveProfile } from "@/lib/api";
+import { saveProfile, uploadProfilePhoto } from "@/lib/api";
 import { hasToken } from "@/lib/auth";
 import {
   clearDraft,
@@ -20,10 +20,12 @@ import type { RefOption } from "@/lib/refTypes";
 type Stage =
   | "welcome"
   | "country"
+  | "residence"
+  | "city"
+  | "origin"
   | "province"
   | "district"
   | "tehsil"
-  | "city"
   | "tribe"
   | "lineage"
   | "language"
@@ -33,14 +35,16 @@ type Stage =
 const PROGRESS: Record<Stage, number> = {
   welcome: 0.02,
   country: 0.12,
-  province: 0.25,
-  district: 0.38,
-  tehsil: 0.48,
-  city: 0.48,
-  tribe: 0.6,
-  lineage: 0.72,
-  language: 0.84,
-  photo: 0.93,
+  residence: 0.2,
+  city: 0.28,
+  origin: 0.34,
+  province: 0.42,
+  district: 0.52,
+  tehsil: 0.6,
+  tribe: 0.68,
+  lineage: 0.78,
+  language: 0.86,
+  photo: 0.94,
   done: 1,
 };
 
@@ -71,6 +75,10 @@ export default function Wizard() {
   useEffect(() => {
     if (ready && stage === "done" && draft.completedAt && hasToken()) {
       saveProfile(draft).catch(() => {});
+      // a freshly picked photo is still a local data URL — store it server-side
+      if (draft.photo?.startsWith("data:")) {
+        uploadProfilePhoto(draft.photo).catch(() => {});
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, stage]);
@@ -98,6 +106,7 @@ export default function Wizard() {
 
   const shell = (
     title: string,
+    titlePs: string | undefined,
     subtitle: string | undefined,
     children: React.ReactNode,
   ) => (
@@ -105,6 +114,7 @@ export default function Wizard() {
       progress={PROGRESS[stage]}
       onBack={history.length > 0 && stage !== "done" ? back : undefined}
       title={title}
+      titlePs={titlePs}
       subtitle={subtitle}
       audioSrc={`/audio/onboarding/${stage}.mp3`}
     >
@@ -112,10 +122,14 @@ export default function Wizard() {
     </StepShell>
   );
 
+  const overseas = draft.country?.id === "overseas";
+  const originId = overseas ? draft.origin?.id : draft.country?.id;
+
   switch (stage) {
     case "welcome":
       return shell(
         draft.name ? `Hello, ${draft.name} 👋` : "Hello 👋",
+        "سلام",
         "A few quick questions — about 30 seconds.",
         <button
           onClick={() => advance("country", {})}
@@ -128,16 +142,24 @@ export default function Wizard() {
     case "country":
       return shell(
         "Where are you from?",
+        "ته د کوم ځای یې؟",
         undefined,
         <StepChoice
           choices={[
-            { id: "pk", name: "Pakistan" },
-            { id: "af", name: "Afghanistan" },
-            { id: "overseas", name: "Overseas", hint: "living abroad" },
+            { id: "pk", name: "Pakistan", ps: "پاکستان" },
+            { id: "af", name: "Afghanistan", ps: "افغانستان" },
+            {
+              id: "overseas",
+              name: "Overseas",
+              ps: "بهر",
+              hint: "living abroad",
+            },
           ]}
           onPick={(c) =>
-            advance("province", {
+            advance(c.id === "overseas" ? "residence" : "province", {
               country: { id: c.id, name: c.name },
+              residence: undefined,
+              origin: undefined,
               province: undefined,
               district: undefined,
               tehsil: undefined,
@@ -149,34 +171,83 @@ export default function Wizard() {
         />,
       );
 
-    case "province": {
-      const overseas = draft.country?.id === "overseas";
+    case "residence":
       return shell(
-        overseas ? "Where do you live?" : "Which province?",
+        "Which country do you live in?",
+        "په کوم هیواد کې اوسېږې؟",
         undefined,
         <StepSelect
-          endpoint={`/api/ref/provinces?country=${draft.country?.id}`}
+          endpoint="/api/ref/provinces?country=overseas"
           onPick={(o) =>
-            advance(overseas ? "city" : "district", {
+            advance("city", { residence: { id: o.id, name: o.name } })
+          }
+          onCustom={(name) =>
+            advance("city", { residence: { name, pending: true } })
+          }
+          addLabel="Somewhere else? Add it"
+        />,
+      );
+
+    case "city":
+      return shell(
+        "Which city?",
+        "کوم ښار؟",
+        draft.residence?.name,
+        <StepText
+          placeholder="Type your city"
+          onSubmit={(city) => advance("origin", { city })}
+          onSkip={() => advance("origin", { city: undefined })}
+          skipLabel="Skip"
+        />,
+      );
+
+    case "origin":
+      return shell(
+        "Where is your family from?",
+        "کورنۍ مو د کوم ځای ده؟",
+        "Your Pashto comes from there — that's what we're recording.",
+        <StepChoice
+          choices={[
+            { id: "pk", name: "Pakistan", ps: "پاکستان" },
+            { id: "af", name: "Afghanistan", ps: "افغانستان" },
+          ]}
+          onPick={(c) =>
+            advance("province", {
+              origin: { id: c.id, name: c.name },
+              province: undefined,
+              district: undefined,
+              tehsil: undefined,
+            })
+          }
+        />,
+      );
+
+    case "province":
+      return shell(
+        "Which province?",
+        "کوم ولایت؟",
+        undefined,
+        <StepSelect
+          endpoint={`/api/ref/provinces?country=${originId ?? ""}`}
+          onPick={(o) =>
+            advance("district", {
               province: { id: o.id, name: o.name },
               district: undefined,
               tehsil: undefined,
             })
           }
           onCustom={(name) =>
-            advance(overseas ? "city" : "district", {
-              province: { name, pending: true },
-            })
+            advance("district", { province: { name, pending: true } })
           }
           addLabel="Somewhere else? Add it"
         />,
       );
-    }
 
     case "district":
       return shell(
         "Which district?",
-        undefined,
+        "کوم ولسوالي؟",
+        draft.province?.name,
         <StepSelect
           endpoint={`/api/ref/districts?province=${draft.province?.id ?? ""}`}
           emptyPlaceholder="Type your district"
@@ -197,6 +268,7 @@ export default function Wizard() {
     case "tehsil":
       return shell(
         "Which tehsil?",
+        "کومه تحصیل؟",
         draft.district?.name,
         <StepSelect
           endpoint={`/api/ref/tehsils?district=${draft.district?.id ?? ""}`}
@@ -209,27 +281,18 @@ export default function Wizard() {
         />,
       );
 
-    case "city":
-      return shell(
-        "Which city?",
-        draft.province?.name,
-        <StepText
-          placeholder="Type your city"
-          onSubmit={(city) => advance("tribe", { city })}
-          onSkip={() => advance("tribe", { city: undefined })}
-          skipLabel="Skip"
-        />,
-      );
-
     case "tribe": {
-      const districtParam = draft.district?.id
+      const scope = draft.district?.id
         ? `?district=${draft.district.id}`
-        : "";
+        : draft.province?.id
+          ? `?province=${draft.province.id}`
+          : "";
       return shell(
         "Your tribe?",
+        "قوم مو څه دی؟",
         "Tribes from your area are listed first.",
         <StepSelect
-          endpoint={`/api/ref/tribes${districtParam}`}
+          endpoint={`/api/ref/tribes${scope}`}
           onPick={(o) =>
             advance(o.hasChildren ? "lineage" : "language", {
               tribePath: [{ id: o.id, name: o.name }],
@@ -248,6 +311,7 @@ export default function Wizard() {
     case "lineage":
       return shell(
         `Sub-tribe of ${lastTribe?.name}?`,
+        "کومه څانګه؟",
         "Only if you know it.",
         <StepSelect
           endpoint={`/api/ref/tribes?parent=${lastTribe?.id ?? ""}`}
@@ -269,6 +333,7 @@ export default function Wizard() {
     case "language":
       return shell(
         "Your language?",
+        "کومه ژبه وایې؟",
         "The one you speak at home.",
         <StepSelect
           endpoint="/api/ref/languages"
@@ -283,6 +348,7 @@ export default function Wizard() {
     case "photo":
       return shell(
         "Add a photo?",
+        "انځور مو ولیکئ؟",
         "Optional — you can always add one later.",
         <StepPhoto
           onSubmit={(photo) =>
@@ -296,7 +362,12 @@ export default function Wizard() {
 
     case "done":
       return (
-        <StepShell progress={1} title="You're in." subtitle="Here's your profile.">
+        <StepShell
+          progress={1}
+          title="You're in."
+          titlePs="ښه راغلاست"
+          subtitle="Here's your profile."
+        >
           <StepDone draft={draft} nextHref={nextHref} />
           <button
             onClick={() => {

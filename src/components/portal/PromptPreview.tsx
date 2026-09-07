@@ -102,7 +102,7 @@ export default function PromptPreview({
           </button>
         )}
         <p className="mt-3 text-center text-xs text-ink-soft">
-          Contributing opens soon — this is a preview.
+          A taste of what&apos;s coming in this activity.
         </p>
       </div>
     </div>

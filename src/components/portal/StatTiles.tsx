@@ -1,14 +1,33 @@
-const TILES = [
-  { value: "0", label: "day streak", icon: "🔥" },
-  { value: "0", label: "words accepted", icon: "✅" },
-  { value: "—", label: "overall rank", icon: "🌍" },
-  { value: "—", label: "district rank", icon: "🏆" },
-];
+"use client";
+
+import { useEffect, useState } from "react";
+import { getMyStats, type MyStats } from "@/lib/api";
+import { hasToken } from "@/lib/auth";
 
 export default function StatTiles() {
+  const [stats, setStats] = useState<MyStats | null>(null);
+
+  useEffect(() => {
+    if (hasToken()) getMyStats().then(setStats, () => {});
+  }, []);
+
+  const rank = (n: number | null | undefined) =>
+    n === null || n === undefined ? "—" : `#${n}`;
+
+  const tiles = [
+    { value: String(stats?.streak ?? 0), label: "day streak", icon: "🔥" },
+    {
+      value: String(stats?.wordsAccepted ?? 0),
+      label: "words added",
+      icon: "✅",
+    },
+    { value: rank(stats?.overallRank), label: "overall rank", icon: "🌍" },
+    { value: rank(stats?.districtRank), label: "district rank", icon: "🏆" },
+  ];
+
   return (
     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">
-      {TILES.map((tile) => (
+      {tiles.map((tile) => (
         <div
           key={tile.label}
           className="rounded-2xl border border-mist bg-white/70 px-2 py-4 text-center"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getMe, saveProfile } from "@/lib/api";
+import { getMe, saveProfile, uploadProfilePhoto } from "@/lib/api";
 import { getToken, hasToken, setAuth } from "@/lib/auth";
 import { loadDraft, saveDraft } from "@/lib/profileDraft";
 import { profileToDraft } from "@/lib/profileSync";
@@ -23,6 +23,11 @@ export default function ProfileHydrator() {
           saveDraft(
             profileToDraft(profile, user.name || local.name, local.photo),
           );
+          // a local photo that never reached the server would vanish on the
+          // next device — push it up once
+          if (!profile.photoUrl && local.photo?.startsWith("data:")) {
+            uploadProfilePhoto(local.photo).catch(() => {});
+          }
         } else if (local.completedAt) {
           saveProfile(local).catch(() => {});
         } else if (user.name && !local.name) {

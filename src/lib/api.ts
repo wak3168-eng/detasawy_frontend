@@ -115,19 +115,21 @@ export type StaffSuggestion = {
   candidates: { id: string; name: string }[];
   mergeIntoId?: string | null;
   mergeIntoName?: string | null;
+  /** Already published and in use — review is clean-up, not a gate. */
+  live?: boolean;
 };
 
 export function getOverview(): Promise<OverviewStats> {
   return request("/api/admin/overview", {}, true);
 }
 
-export function getSuggestions(status = "pending"): Promise<StaffSuggestion[]> {
+export function getSuggestions(status = "review"): Promise<StaffSuggestion[]> {
   return request(`/api/admin/suggestions?status=${status}`, {}, true);
 }
 
 export function actOnSuggestion(
   id: number,
-  action: "approve" | "reject" | "merge",
+  action: "approve" | "keep" | "reject" | "merge",
   mergeIntoId?: string,
 ): Promise<StaffSuggestion> {
   return request(
@@ -317,7 +319,13 @@ export type WordRow = {
   count: number;
 };
 
-export type WordGroup = { word: string; count: number; rows: WordRow[] };
+export type WordGroup = {
+  word: string;
+  count: number;
+  /** Other spellings people used for this same word. */
+  variants?: { word: string; count: number }[];
+  rows: WordRow[];
+};
 
 export function getPromptWords(promptId: number): Promise<WordGroup[]> {
   return request(`/api/prompts/${promptId}/words`);
@@ -325,6 +333,40 @@ export function getPromptWords(promptId: number): Promise<WordGroup[]> {
 
 export function getTodayCount(): Promise<{ count: number }> {
   return request("/api/contributions/today", {}, true);
+}
+
+export function uploadProfilePhoto(dataUrl: string): Promise<ServerProfile> {
+  const token = getToken();
+  if (!token) return Promise.reject(new ApiError("Not logged in."));
+  return fetch(dataUrl)
+    .then((r) => r.blob())
+    .then((blob) => {
+      const form = new FormData();
+      form.append("photo", blob, "photo.jpg");
+      return fetch(`${API_BASE}/api/profile/photo`, {
+        method: "POST",
+        headers: { Authorization: `Token ${token}` },
+        body: form,
+      });
+    })
+    .then(async (res) => {
+      const data: unknown = await res.json().catch(() => null);
+      if (!res.ok) throw new ApiError(extractError(data, res.status));
+      return data as ServerProfile;
+    });
+}
+
+export type MyStats = {
+  points: number;
+  wordsAccepted: number;
+  todayCount: number;
+  streak: number;
+  overallRank: number | null;
+  districtRank: number | null;
+};
+
+export function getMyStats(): Promise<MyStats> {
+  return request("/api/me/stats", {}, true);
 }
 
 export function saveProfile(draft: ProfileDraft): Promise<ServerProfile> {

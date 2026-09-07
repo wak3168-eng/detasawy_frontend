@@ -22,7 +22,7 @@ function SuggestionCard({
   const [siblings, setSiblings] = useState<RefOption[] | null>(null);
 
   const act = async (
-    action: "approve" | "reject" | "merge",
+    action: "approve" | "keep" | "reject" | "merge",
     mergeIntoId?: string,
   ) => {
     setBusy(true);
@@ -61,6 +61,11 @@ function SuggestionCard({
         {suggestion.timesSuggested > 1 && (
           <span className="text-xs font-bold text-azure-deep">
             ×{suggestion.timesSuggested}
+          </span>
+        )}
+        {suggestion.live && (
+          <span className="rounded-full bg-[#e6f2e6] px-2.5 py-0.5 text-[11px] font-bold text-[#3f7a3f]">
+            live
           </span>
         )}
       </div>
@@ -128,19 +133,19 @@ function SuggestionCard({
               </button>
               <button
                 disabled={busy}
-                onClick={() => act("approve")}
+                onClick={() => act(suggestion.live ? "keep" : "approve")}
                 className="rounded-full border border-sky px-5 py-2 text-sm font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
               >
-                Approve as new
+                Keep as its own
               </button>
             </>
           ) : (
             <button
               disabled={busy}
-              onClick={() => act("approve")}
+              onClick={() => act(suggestion.live ? "keep" : "approve")}
               className="rounded-full bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
             >
-              Approve
+              {suggestion.live ? "Keep" : "Approve"}
             </button>
           )}
           {suggestion.kind === "tribe" && (
@@ -157,7 +162,7 @@ function SuggestionCard({
             onClick={() => act("reject")}
             className="rounded-full px-5 py-2 text-sm font-bold text-ink-soft transition-colors hover:bg-mist disabled:opacity-50"
           >
-            Reject
+            {suggestion.live ? "Remove" : "Reject"}
           </button>
         </div>
       )}
@@ -173,7 +178,7 @@ export default function ReviewQueue() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    getSuggestions("pending").then(setItems, () => setFailed(true));
+    getSuggestions("review").then(setItems, () => setFailed(true));
   }, []);
 
   if (failed) {
@@ -197,7 +202,7 @@ export default function ReviewQueue() {
   if (items.length === 0) {
     return (
       <p className="rounded-3xl border border-mist bg-white/70 p-7 text-center text-sm text-ink-soft">
-        Queue is clear — nothing waiting for review. 🎉
+        Nothing to tidy up — every entry people added looks right. 🎉
       </p>
     );
   }

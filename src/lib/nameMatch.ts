@@ -1,10 +1,11 @@
 import type { RefOption } from "@/lib/refTypes";
 
 const CHAR_MAP: Record<string, string> = {
-  "ك": "ک", // ك -> ک
-  "ي": "ی", // ي -> ی
-  "ى": "ی", // ى -> ی
-  "ة": "ه", // ة -> ه
+  "ك": "ک", // Arabic kaf
+  "گ": "ګ", // Persian gaf -> Pashto gaf
+  "ي": "ی", // Arabic ya
+  "ى": "ی", // alef maksura
+  "ة": "ه", // ta marbuta
 };
 
 export function normalizeName(value: string): string {

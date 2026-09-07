@@ -152,10 +152,6 @@ export default function DailySetPanel() {
         <PointsCard />
         <ShareCard />
       </div>
-
-      <p className="mt-6 text-center text-xs text-ink-soft">
-        Contributions open at launch &mdash; your profile is ready.
-      </p>
     </div>
   );
 }

@@ -4,6 +4,10 @@ export type DraftTribe = { id?: string; name: string; pending?: boolean };
 export type ProfileDraft = {
   name?: string;
   country?: DraftPlace;
+  /** Diaspora: the country lived in now. */
+  residence?: DraftPlace;
+  /** Diaspora: the country the family comes from. */
+  origin?: DraftPlace;
   province?: DraftPlace;
   district?: DraftPlace;
   tehsil?: DraftPlace;

@@ -1,3 +1,5 @@
+import { API_BASE } from "@/lib/apiBase";
+
 export type LeaderboardRow = {
   rank: number;
   name: string;
@@ -5,10 +7,13 @@ export type LeaderboardRow = {
   points: number;
 };
 
-/**
- * District standings. Empty until scoring goes live — swaps to the Django
- * portal endpoint (cached leaderboard snapshots) without UI changes.
- */
+/** District standings, live from the Django portal endpoint. */
 export async function getDistrictLeaderboard(): Promise<LeaderboardRow[]> {
-  return [];
+  try {
+    const res = await fetch(`${API_BASE}/api/leaderboard/districts`);
+    if (!res.ok) return [];
+    return (await res.json()) as LeaderboardRow[];
+  } catch {
+    return [];
+  }
 }
