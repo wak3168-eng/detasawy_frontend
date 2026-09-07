@@ -120,12 +120,12 @@ export default function NameItActivity({
         )}
 
         {prompt && phase === "answer" && (
-          <div className="mt-5 flex flex-1 flex-col">
+          <div className="mt-4 flex flex-1 flex-col">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={prompt.mediaUrl}
               alt={prompt.captionEn ?? "prompt"}
-              className="h-[34dvh] min-h-44 w-full rounded-3xl border border-mist object-cover"
+              className="h-[24dvh] min-h-36 w-full rounded-3xl border border-mist object-cover"
             />
             {(prompt.licence || prompt.sourceUrl) && (
               <p className="mt-1.5 truncate px-2 text-center text-[10px] text-ink-soft/80">
@@ -143,17 +143,17 @@ export default function NameItActivity({
                 )}
               </p>
             )}
-            <div className="mt-4">
+            <div className="mt-3">
               {prompt.captionEn && (
-                <h1 className="text-2xl font-extrabold tracking-tight">
+                <h1 className="text-xl font-extrabold tracking-tight">
                   {prompt.captionEn}
                 </h1>
               )}
-              <p className="mt-1 text-sm text-ink-soft">
+              <p className="mt-0.5 text-sm text-ink-soft">
                 What do you call this in Pashto?
               </p>
             </div>
-            <div className="mt-4 space-y-3.5">
+            <div className="mt-3 space-y-2.5">
               <PashtoInput
                 value={text}
                 onChange={setText}
@@ -161,7 +161,7 @@ export default function NameItActivity({
               />
               <VoiceRecorder key={prompt.id} onAudio={setAudio} />
             </div>
-            <div className="mt-auto pt-5">
+            <div className="mt-auto pt-4">
               <button
                 disabled={busy || !text.trim()}
                 onClick={submit}
