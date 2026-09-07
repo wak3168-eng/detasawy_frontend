@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import AdminSidebar from "@/components/portal/AdminSidebar";
 import { logout } from "@/lib/api";
 import { getUser, hasToken, type Role } from "@/lib/auth";
 import {
@@ -133,6 +134,10 @@ export default function Sidebar() {
 
   if (!ready) {
     return <aside className="md:sticky md:top-0 md:h-dvh md:w-72 md:shrink-0" />;
+  }
+
+  if (role === "superadmin") {
+    return <AdminSidebar />;
   }
 
   if (collapsed) {

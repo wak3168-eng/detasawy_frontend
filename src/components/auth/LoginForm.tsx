@@ -33,7 +33,9 @@ export default function LoginForm() {
               local.photo,
             ),
           );
-          router.push("/contribute");
+          router.push(
+            session.user.role === "superadmin" ? "/admin" : "/contribute",
+          );
         } catch (err) {
           setError(err instanceof Error ? err.message : "Something went wrong.");
           setBusy(false);
