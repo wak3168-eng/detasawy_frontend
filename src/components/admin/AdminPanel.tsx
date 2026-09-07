@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import CampaignManager from "@/components/admin/CampaignManager";
 import OverviewStats from "@/components/admin/OverviewStats";
+import PromptManager from "@/components/admin/PromptManager";
 import ReviewQueue from "@/components/admin/ReviewQueue";
 import TeamManager from "@/components/admin/TeamManager";
-import { API_BASE } from "@/lib/apiBase";
 import { getUser, type Role } from "@/lib/auth";
-
-const QUICK_LINKS = [
-  { label: "Add prompts", path: "/admin/corpus/prompt/add/" },
-  { label: "New campaign", path: "/admin/portal/campaign/add/" },
-  { label: "All users", path: "/admin/identity/user/" },
-];
 
 export default function AdminPanel() {
   const [role, setRole] = useState<Role | null>(null);
@@ -27,10 +22,10 @@ export default function AdminPanel() {
     return (
       <div className="rounded-3xl border border-mist bg-white/70 p-7 text-center">
         <h1 className="text-2xl font-extrabold tracking-tight">
-          Reviewers only
+          Team members only
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
-          This area is for the review team.
+          This area is for the Detasawy team.
         </p>
         <Link
           href="/contribute"
@@ -43,75 +38,52 @@ export default function AdminPanel() {
   }
 
   const isSuper = role === "superadmin";
-
-  if (role === "campaign") {
-    return (
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">
-          Campaigns &amp; content
-        </h1>
-        <p className="mt-1.5 text-sm text-ink-soft">
-          Stock the pictures and voice notes, run the drives.
-        </p>
-        <div className="mt-5">
-          <OverviewStats />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {QUICK_LINKS.filter((l) => l.label !== "All users").map((link) => (
-            <a
-              key={link.label}
-              href={`${API_BASE}${link.path}`}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-sky px-4 py-2 text-xs font-bold text-azure-deep transition-colors hover:bg-mist"
-            >
-              {link.label} ↗
-            </a>
-          ))}
-        </div>
-        <p className="mt-4 text-xs text-ink-soft">
-          Uploads open in the Django admin with your campaign-manager access.
-        </p>
-      </div>
-    );
-  }
+  const isCampaign = role === "campaign";
+  const isReviewer = role === "reviewer";
 
   return (
     <div>
       <h1 className="text-2xl font-extrabold tracking-tight">
-        {isSuper ? "Admin" : "Review"}
+        {isSuper ? "Admin" : isCampaign ? "Campaigns & content" : "Review"}
       </h1>
       <p className="mt-1.5 text-sm text-ink-soft">
         {isSuper
           ? "The whole portal at a glance."
-          : "Entries contributors added, waiting for a decision."}
+          : isCampaign
+            ? "Stock the pictures and voice notes, run the drives."
+            : "Entries contributors added, waiting for a decision."}
       </p>
-      {isSuper && (
+
+      {(isSuper || isCampaign) && (
+        <div className="mt-5">
+          <OverviewStats />
+        </div>
+      )}
+
+      {(isSuper || isCampaign) && (
         <>
-          <div className="mt-5">
-            <OverviewStats />
+          <h2 className="mt-7 font-extrabold">Prompts</h2>
+          <div className="mt-3">
+            <PromptManager />
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {QUICK_LINKS.map((link) => (
-              <a
-                key={link.label}
-                href={`${API_BASE}${link.path}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full border border-sky px-4 py-2 text-xs font-bold text-azure-deep transition-colors hover:bg-mist"
-              >
-                {link.label} ↗
-              </a>
-            ))}
+          <h2 className="mt-7 font-extrabold">Campaigns</h2>
+          <div className="mt-3">
+            <CampaignManager />
           </div>
         </>
       )}
-      <h2 className="mt-7 font-extrabold">Review queue</h2>
-      <div className="mt-3">
-        <ReviewQueue />
-      </div>
+
+      {(isSuper || isReviewer) && (
+        <>
+          <h2 className="mt-7 font-extrabold">Review queue</h2>
+          <div className="mt-3">
+            <ReviewQueue />
+          </div>
+        </>
+      )}
+
       {isSuper && (
-        <div className="mt-6">
+        <div className="mt-7">
           <TeamManager />
         </div>
       )}

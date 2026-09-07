@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logout } from "@/lib/api";
-import { API_BASE } from "@/lib/apiBase";
 import { getUser } from "@/lib/auth";
 import { clearDraft } from "@/lib/profileDraft";
 
@@ -204,18 +203,6 @@ export default function AdminSidebar() {
               {item.label}
             </Link>
           ))}
-          <a
-            href={`${API_BASE}/admin/`}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-sky transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <path d="M15 3h6v6M10 14 21 3" />
-            </svg>
-            Django admin
-          </a>
         </nav>
 
         <button

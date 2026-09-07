@@ -162,6 +162,84 @@ export function setUserRole(
   );
 }
 
+export type StaffPrompt = {
+  id: number;
+  kind: "picture" | "voice";
+  mediaUrl: string;
+  captionEn?: string;
+  captionPs?: string;
+  active: boolean;
+  servedCount: number;
+  createdAt: string;
+};
+
+export function getStaffPrompts(): Promise<StaffPrompt[]> {
+  return request("/api/admin/prompts", {}, true);
+}
+
+export function uploadPrompt(input: {
+  kind: "picture" | "voice";
+  media: File;
+  captionEn?: string;
+  captionPs?: string;
+}): Promise<StaffPrompt> {
+  const token = getToken();
+  if (!token) return Promise.reject(new ApiError("Not logged in."));
+  const form = new FormData();
+  form.append("kind", input.kind);
+  form.append("media", input.media);
+  if (input.captionEn) form.append("captionEn", input.captionEn);
+  if (input.captionPs) form.append("captionPs", input.captionPs);
+  return fetch(`${API_BASE}/api/admin/prompts`, {
+    method: "POST",
+    headers: { Authorization: `Token ${token}` },
+    body: form,
+  }).then(async (res) => {
+    const data: unknown = await res.json().catch(() => null);
+    if (!res.ok) throw new ApiError(extractError(data, res.status));
+    return data as StaffPrompt;
+  });
+}
+
+export function setPromptActive(
+  id: number,
+  active: boolean,
+): Promise<StaffPrompt> {
+  return request(
+    `/api/admin/prompts/${id}`,
+    { method: "POST", body: JSON.stringify({ active }) },
+    true,
+  );
+}
+
+export type StaffCampaign = CampaignItem & {
+  status: "live" | "upcoming" | "ended";
+};
+
+export function getStaffCampaigns(): Promise<StaffCampaign[]> {
+  return request("/api/admin/campaigns", {}, true);
+}
+
+export function createCampaign(input: {
+  name: string;
+  description?: string;
+  scopeType: "all" | "district" | "province";
+  scopeId?: string;
+  scopeName?: string;
+  startsAt: string;
+  endsAt: string;
+}): Promise<StaffCampaign> {
+  return request(
+    "/api/admin/campaigns",
+    { method: "POST", body: JSON.stringify(input) },
+    true,
+  );
+}
+
+export function endCampaign(id: number): Promise<StaffCampaign> {
+  return request(`/api/admin/campaigns/${id}/end`, { method: "POST" }, true);
+}
+
 export type PromptItem = {
   id: number;
   kind: "picture" | "voice";
