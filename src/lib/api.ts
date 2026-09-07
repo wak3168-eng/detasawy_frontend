@@ -85,12 +85,22 @@ export function getMe(): Promise<{ user: AuthUser; profile: ServerProfile }> {
 }
 
 export type OverviewStats = {
+  uniqueWords: number;
+  pictures: number;
+  picturesActive: number;
+  picturesAnswered: number;
+  contributions: number;
+  contributionsToday: number;
+  contributionsWeek: number;
+  voiceNotes: number;
   users: number;
   profilesCompleted: number;
+  contributors: number;
+  districtsCovered: number;
+  campaignsLive: number;
+  suggestionsPending: number;
   tribes: number;
   languages: number;
-  suggestionsPending: number;
-  prompts: number;
 };
 
 export type StaffSuggestion = {
