@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import ContributeGate from "@/components/contribute/ContributeGate";
+import DailySetPanel from "@/components/portal/DailySetPanel";
 
 export const metadata: Metadata = {
   title: "Contribute — Detasawy",
 };
 
 export default function ContributePage() {
-  return <ContributeGate />;
+  return <DailySetPanel />;
 }
