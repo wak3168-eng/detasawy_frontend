@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  --ice: #f7fbfc;
+  --mist: #d6e6f2;
+  --sky: #b9d7ea;
+  --azure: #769fcd;
+  --azure-deep: #4a79ac;
+  --ink: #1e3a56;
+  --ink-soft: #54728f;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-ice: var(--ice);
+  --color-mist: var(--mist);
+  --color-sky: var(--sky);
+  --color-azure: var(--azure);
+  --color-azure-deep: var(--azure-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --font-sans: var(--font-nunito-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-naskh: var(--font-naskh-arabic), "Noto Naskh Arabic", serif;
+}
+
+body {
+  background: var(--ice);
+  color: var(--ink);
+}
+
+@keyframes ring-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.ring-pulse {
+  animation: ring-pulse 2.4s ease-out infinite;
+}
+
+.dot-pulse {
+  animation: dot-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-pulse,
+  .dot-pulse {
+    animation: none;
+  }
+}
