@@ -13,6 +13,7 @@ appears automatically on a step as soon as its file exists — no code changes.
 | `city.mp3`     | Which city? (overseas)                      |
 | `tribe.mp3`    | Your tribe?                                 |
 | `lineage.mp3`  | Do you know the sub-tribe?                  |
+| `language.mp3` | Which language do you speak at home?        |
 | `photo.mp3`    | Add a photo?                                |
 
 Keep clips short (2–4 seconds), mono, ~64 kbps is plenty.

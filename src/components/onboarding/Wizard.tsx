@@ -26,6 +26,7 @@ type Stage =
   | "city"
   | "tribe"
   | "lineage"
+  | "language"
   | "photo"
   | "done";
 
@@ -33,12 +34,13 @@ const PROGRESS: Record<Stage, number> = {
   welcome: 0.02,
   country: 0.12,
   province: 0.25,
-  district: 0.4,
-  tehsil: 0.5,
-  city: 0.5,
-  tribe: 0.62,
-  lineage: 0.78,
-  photo: 0.9,
+  district: 0.38,
+  tehsil: 0.48,
+  city: 0.48,
+  tribe: 0.6,
+  lineage: 0.72,
+  language: 0.84,
+  photo: 0.93,
   done: 1,
 };
 
@@ -182,7 +184,6 @@ export default function Wizard() {
             advance(o.hasTehsils ? "tehsil" : "tribe", {
               district: { id: o.id, name: o.name },
               tehsil: undefined,
-              language: o.language,
             })
           }
           onCustom={(name) =>
@@ -230,14 +231,14 @@ export default function Wizard() {
         <StepSelect
           endpoint={`/api/ref/tribes${districtParam}`}
           onPick={(o) =>
-            advance(o.hasChildren ? "lineage" : "photo", {
+            advance(o.hasChildren ? "lineage" : "language", {
               tribePath: [{ id: o.id, name: o.name }],
             })
           }
           onCustom={(name) =>
-            advance("photo", { tribePath: [{ name, pending: true }] })
+            advance("language", { tribePath: [{ name, pending: true }] })
           }
-          onSkip={() => advance("photo", { tribePath: [] })}
+          onSkip={() => advance("language", { tribePath: [] })}
           skipLabel="Prefer not to say"
           addLabel="Can't find your tribe? Add it"
         />,
@@ -252,15 +253,29 @@ export default function Wizard() {
           endpoint={`/api/ref/tribes?parent=${lastTribe?.id ?? ""}`}
           onPick={(o) => {
             const path = [...(draft.tribePath ?? []), { id: o.id, name: o.name }];
-            advance(o.hasChildren ? "lineage" : "photo", { tribePath: path });
+            advance(o.hasChildren ? "lineage" : "language", { tribePath: path });
           }}
           onCustom={(name) =>
-            advance("photo", {
+            advance("language", {
               tribePath: [...(draft.tribePath ?? []), { name, pending: true }],
             })
           }
-          onSkip={() => advance("photo", {})}
+          onSkip={() => advance("language", {})}
           skipLabel="That's as far as I know"
+          addLabel="Can't find it? Add yours"
+        />,
+      );
+
+    case "language":
+      return shell(
+        "Your language?",
+        "The one you speak at home.",
+        <StepSelect
+          endpoint="/api/ref/languages"
+          onPick={(o) => advance("photo", { language: o.name })}
+          onCustom={(name) => advance("photo", { language: name })}
+          onSkip={() => advance("photo", { language: undefined })}
+          skipLabel="Skip"
           addLabel="Can't find it? Add yours"
         />,
       );

@@ -55,7 +55,7 @@ export default function StepDone({
         )}
         {draft.language && (
           <p className="mt-3 text-xs font-semibold text-ink-soft">
-            Your Pashto: {draft.language}
+            Your language: {draft.language}
           </p>
         )}
       </div>
