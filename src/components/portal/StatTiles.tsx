@@ -1,12 +1,13 @@
 const TILES = [
   { value: "0", label: "day streak", icon: "🔥" },
   { value: "0", label: "words accepted", icon: "✅" },
+  { value: "—", label: "overall rank", icon: "🌍" },
   { value: "—", label: "district rank", icon: "🏆" },
 ];
 
 export default function StatTiles() {
   return (
-    <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">
       {TILES.map((tile) => (
         <div
           key={tile.label}
