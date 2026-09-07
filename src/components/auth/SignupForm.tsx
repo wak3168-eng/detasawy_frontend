@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { Field, LaunchNotice, SelectField } from "@/components/auth/Field";
+import { useRouter } from "next/navigation";
+import { Field } from "@/components/auth/Field";
+import { loadDraft, saveDraft } from "@/lib/profileDraft";
 
 export default function SignupForm() {
-  const [notice, setNotice] = useState(false);
+  const router = useRouter();
 
   return (
     <form
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        setNotice(true);
+        const data = new FormData(event.currentTarget);
+        const name = String(data.get("name") ?? "").trim();
+        saveDraft({ ...loadDraft(), name: name || undefined });
+        router.push("/onboarding");
       }}
     >
       <Field label="Name" type="text" name="name" autoComplete="name" required />
@@ -24,15 +28,6 @@ export default function SignupForm() {
         minLength={8}
         required
       />
-      <SelectField label="Country" name="country" defaultValue="" required>
-        <option value="" disabled>
-          Select
-        </option>
-        <option value="pk">Pakistan</option>
-        <option value="af">Afghanistan</option>
-        <option value="overseas">Overseas</option>
-      </SelectField>
-      <Field label="Province / State" type="text" name="province" required />
       <label className="flex items-start gap-2.5 text-xs text-ink-soft">
         <input
           type="checkbox"
@@ -47,7 +42,10 @@ export default function SignupForm() {
       <button className="w-full rounded-full bg-azure py-3 text-sm font-bold text-white transition-colors hover:bg-azure-deep">
         Create account
       </button>
-      {notice && <LaunchNotice />}
+      <p className="text-center text-xs text-ink-soft">
+        Accounts open at launch &mdash; set up your profile now, it stays on
+        this device.
+      </p>
     </form>
   );
 }

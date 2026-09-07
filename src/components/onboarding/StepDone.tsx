@@ -1,0 +1,66 @@
+"use client";
+
+import Link from "next/link";
+import type { ProfileDraft } from "@/lib/profileDraft";
+
+export default function StepDone({ draft }: { draft: ProfileDraft }) {
+  const place = [draft.tehsil?.name, draft.district?.name, draft.province?.name]
+    .filter(Boolean)
+    .join(", ");
+  const tribeChain = (draft.tribePath ?? []).map((t) => t.name).join(" › ");
+  const hasPending =
+    (draft.tribePath ?? []).some((t) => t.pending) ||
+    draft.district?.pending ||
+    draft.tehsil?.pending;
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-3xl border border-mist bg-white/70 p-6">
+        <div className="flex items-center gap-4">
+          {draft.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={draft.photo}
+              alt=""
+              className="size-16 rounded-full object-cover"
+            />
+          ) : (
+            <span className="grid size-16 place-items-center rounded-full bg-mist text-xl font-extrabold text-azure-deep">
+              {(draft.name ?? "؟").slice(0, 1).toUpperCase()}
+            </span>
+          )}
+          <div>
+            <p className="text-lg font-extrabold">{draft.name ?? "Contributor"}</p>
+            {place && <p className="text-sm text-ink-soft">{place}</p>}
+            {draft.city && <p className="text-sm text-ink-soft">{draft.city}</p>}
+          </div>
+        </div>
+        {tribeChain && (
+          <p className="mt-4 rounded-2xl bg-mist/50 px-4 py-3 text-sm font-bold text-azure-deep">
+            {tribeChain}
+          </p>
+        )}
+        {draft.language && (
+          <p className="mt-3 text-xs font-semibold text-ink-soft">
+            Your Pashto: {draft.language}
+          </p>
+        )}
+      </div>
+      {hasPending && (
+        <p className="text-center text-xs text-ink-soft">
+          Entries you added are marked for review — thank you for growing the
+          list.
+        </p>
+      )}
+      <p className="text-center text-sm text-ink-soft">
+        Saved on this device. Your profile syncs when accounts open at launch.
+      </p>
+      <Link
+        href="/"
+        className="block w-full rounded-full bg-azure py-3.5 text-center text-sm font-bold text-white transition-colors hover:bg-azure-deep"
+      >
+        Done
+      </Link>
+    </div>
+  );
+}
