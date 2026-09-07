@@ -3,6 +3,7 @@
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { landRings } from "@/lib/landLines";
 import { DIASPORA_LINKS, REGIONS } from "@/lib/regions";
 import { PALETTE } from "@/lib/theme";
 
@@ -17,6 +18,33 @@ function latLonToVec3(lat: number, lon: number, radius: number) {
     radius * Math.cos(phi) * Math.sin(lambda),
     radius * Math.sin(phi),
     radius * Math.cos(phi) * Math.cos(lambda),
+  );
+}
+
+function Land() {
+  const geometries = useMemo(
+    () =>
+      landRings().map((ring) => {
+        const points = ring.map(([lon, lat]) =>
+          latLonToVec3(lat, lon, RADIUS + 0.001),
+        );
+        return new THREE.BufferGeometry().setFromPoints(points);
+      }),
+    [],
+  );
+
+  return (
+    <group>
+      {geometries.map((geometry, i) => (
+        <lineLoop key={i} geometry={geometry}>
+          <lineBasicMaterial
+            color={PALETTE.azure}
+            transparent
+            opacity={0.55}
+          />
+        </lineLoop>
+      ))}
+    </group>
   );
 }
 
@@ -134,7 +162,7 @@ function Scene() {
             color={PALETTE.sky}
             wireframe
             transparent
-            opacity={0.22}
+            opacity={0.1}
           />
         </mesh>
         <mesh>
@@ -147,6 +175,7 @@ function Scene() {
             depthWrite={false}
           />
         </mesh>
+        <Land />
         <Markers />
         <Arcs />
       </group>

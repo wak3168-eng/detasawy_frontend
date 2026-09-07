@@ -1,3 +1,4 @@
+import Link from "next/link";
 import GlobeSection from "@/components/globe/GlobeSection";
 
 const DEMO_REPLIES = [
@@ -23,9 +24,12 @@ export default function Hero() {
           Built by its speakers, one word at a time.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-azure px-6 py-3 text-sm font-bold text-white shadow-lg shadow-azure/30">
-            Launching soon
-          </span>
+          <Link
+            href="/signup"
+            className="rounded-full bg-azure px-6 py-3 text-sm font-bold text-white shadow-lg shadow-azure/30 transition-colors hover:bg-azure-deep"
+          >
+            Sign up
+          </Link>
           <a
             href="#how-it-works"
             className="rounded-full border border-sky px-6 py-3 text-sm font-bold text-azure-deep transition-colors hover:bg-mist"
