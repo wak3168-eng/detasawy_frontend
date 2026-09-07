@@ -12,58 +12,192 @@ import {
   type ProfileDraft,
 } from "@/lib/profileDraft";
 
+const COLLAPSE_KEY = "detasawy:sidebar-collapsed";
+
 const NAV = [
-  { href: "/contribute", label: "Contribute" },
-  { href: "/leaderboard", label: "Leaderboard" },
+  {
+    href: "/contribute",
+    label: "Contribute",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v8M8 12h8" />
+      </svg>
+    ),
+  },
+  {
+    href: "/leaderboard",
+    label: "Leaderboard",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
+        <path d="M5 20v-8M12 20V5M19 20v-5" />
+      </svg>
+    ),
+  },
 ];
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`size-4 transition-transform ${open ? "" : "rotate-180"}`}
+    >
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
   const [authed, setAuthed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setDraft(loadDraft());
     setAuthed(hasToken());
+    try {
+      const stored = localStorage.getItem(COLLAPSE_KEY);
+      if (stored !== null) setCollapsed(stored === "1");
+      else setCollapsed(window.matchMedia("(max-width: 767px)").matches);
+    } catch {
+      // default stays expanded
+    }
+    setReady(true);
     return subscribeDraft(() => setDraft(loadDraft()));
   }, []);
 
-  const complete = Boolean(draft?.completedAt);
+  const toggle = () => {
+    setCollapsed((value) => {
+      try {
+        localStorage.setItem(COLLAPSE_KEY, value ? "0" : "1");
+      } catch {
+        // not persisted — still toggles
+      }
+      return !value;
+    });
+  };
+
+  const name = draft?.name ?? "Contributor";
+  const initial = (draft?.name ?? "؟").slice(0, 1).toUpperCase();
   const place = [draft?.district?.name, draft?.province?.name]
     .filter(Boolean)
     .join(", ");
   const tribeChain = (draft?.tribePath ?? []).map((t) => t.name).join(" › ");
+  const complete = Boolean(draft?.completedAt);
+
+  const avatar = draft?.photo ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={draft.photo}
+      alt=""
+      className="size-10 shrink-0 rounded-full object-cover"
+    />
+  ) : (
+    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-mist text-sm font-extrabold text-azure-deep">
+      {initial}
+    </span>
+  );
+
+  const doLogout = async () => {
+    await logout();
+    clearDraft();
+    router.push("/");
+  };
+
+  if (!ready) return <aside className="md:w-72 md:shrink-0" />;
+
+  if (collapsed) {
+    return (
+      <aside className="md:w-20 md:shrink-0">
+        {/* mobile: compact bar */}
+        <div className="flex items-center gap-3 rounded-3xl border border-mist bg-white/70 p-3 md:hidden">
+          {avatar}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-extrabold">{name}</p>
+            <p className="truncate text-[11px] text-ink-soft">
+              0 Kar Points
+            </p>
+          </div>
+          <button
+            onClick={toggle}
+            aria-label="Expand sidebar"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-mist text-ink-soft transition-colors hover:bg-mist"
+          >
+            <Chevron open={false} />
+          </button>
+        </div>
+        {/* desktop: icon rail */}
+        <div className="hidden flex-col items-center gap-4 rounded-3xl border border-mist bg-white/70 p-3 py-5 md:flex">
+          <Link
+            href="/"
+            className="grid size-9 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white"
+          >
+            D
+          </Link>
+          {avatar}
+          <p className="text-sm font-extrabold text-azure-deep">0</p>
+          <nav className="flex flex-col gap-2">
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={item.label}
+                className={`grid size-10 place-items-center rounded-xl transition-colors ${
+                  pathname === item.href
+                    ? "bg-azure text-white"
+                    : "text-ink-soft hover:bg-mist hover:text-ink"
+                }`}
+              >
+                {item.icon}
+              </Link>
+            ))}
+          </nav>
+          <button
+            onClick={toggle}
+            aria-label="Expand sidebar"
+            title="Expand"
+            className="mt-2 grid size-9 place-items-center rounded-full border border-mist text-ink-soft transition-colors hover:bg-mist"
+          >
+            <Chevron open={false} />
+          </button>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="md:w-72 md:shrink-0">
       <div className="rounded-3xl border border-mist bg-white/70 p-5">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white">
-            D
-          </span>
-          <span className="text-[15px] font-extrabold tracking-tight">
-            Detasawy
-          </span>
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="grid size-8 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white">
+              D
+            </span>
+            <span className="text-[15px] font-extrabold tracking-tight">
+              Detasawy
+            </span>
+          </Link>
+          <button
+            onClick={toggle}
+            aria-label="Collapse sidebar"
+            className="grid size-8 place-items-center rounded-full text-ink-soft transition-colors hover:bg-mist"
+          >
+            <Chevron open />
+          </button>
+        </div>
 
         <div className="mt-5 flex items-center gap-3.5">
-          {draft?.photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={draft.photo}
-              alt=""
-              className="size-14 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <span className="grid size-14 shrink-0 place-items-center rounded-full bg-mist text-lg font-extrabold text-azure-deep">
-              {(draft?.name ?? "؟").slice(0, 1).toUpperCase()}
-            </span>
-          )}
+          {avatar}
           <div className="min-w-0">
-            <p className="truncate font-extrabold">
-              {draft?.name ?? "Contributor"}
-            </p>
+            <p className="truncate font-extrabold">{name}</p>
             {place ? (
               <p className="truncate text-xs text-ink-soft">{place}</p>
             ) : (
@@ -105,12 +239,13 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`block rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors ${
+              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors ${
                 pathname === item.href
                   ? "bg-azure text-white"
                   : "text-ink-soft hover:bg-mist hover:text-ink"
               }`}
             >
+              {item.icon}
               {item.label}
             </Link>
           ))}
@@ -118,11 +253,7 @@ export default function Sidebar() {
 
         {authed && (
           <button
-            onClick={async () => {
-              await logout();
-              clearDraft();
-              router.push("/");
-            }}
+            onClick={doLogout}
             className="mt-4 w-full py-1.5 text-xs font-bold text-ink-soft transition-colors hover:text-ink"
           >
             Log out
