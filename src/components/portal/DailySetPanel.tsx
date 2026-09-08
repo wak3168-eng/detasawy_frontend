@@ -6,6 +6,7 @@ import CampaignsCard from "@/components/portal/CampaignsCard";
 import NameItActivity from "@/components/portal/NameItActivity";
 import PointsCard from "@/components/portal/PointsCard";
 import PromptPreview from "@/components/portal/PromptPreview";
+import ReplyActivity from "@/components/portal/ReplyActivity";
 import ShareCard from "@/components/portal/ShareCard";
 import StatTiles from "@/components/portal/StatTiles";
 import { getTodayCount } from "@/lib/api";
@@ -34,9 +35,9 @@ const ACTIVITIES = [
   {
     count: 2,
     title: "Reply",
-    body: "Answer in your own dialect.",
-    kind: "voice" as const,
-    live: false,
+    body: "See a scene — say what is happening, aloud.",
+    kind: "scene" as const,
+    live: true,
   },
 ];
 
@@ -46,6 +47,7 @@ export default function DailySetPanel() {
     null,
   );
   const [nameItOpen, setNameItOpen] = useState(false);
+  const [replyOpen, setReplyOpen] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
 
   useEffect(() => {
@@ -109,9 +111,11 @@ export default function DailySetPanel() {
         {ACTIVITIES.map((activity) => (
           <button
             key={activity.title}
-            onClick={() =>
-              activity.live ? setNameItOpen(true) : setPreview(activity)
-            }
+            onClick={() => {
+              if (!activity.live) return setPreview(activity);
+              if (activity.title === "Reply") return setReplyOpen(true);
+              setNameItOpen(true);
+            }}
             className="flex w-full items-center gap-4 rounded-3xl border border-mist bg-white/70 p-5 text-left transition-colors hover:border-azure"
           >
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-mist text-lg font-extrabold text-azure-deep">
@@ -144,6 +148,12 @@ export default function DailySetPanel() {
       {nameItOpen && (
         <NameItActivity
           onClose={() => setNameItOpen(false)}
+          onProgress={setTodayCount}
+        />
+      )}
+      {replyOpen && (
+        <ReplyActivity
+          onClose={() => setReplyOpen(false)}
           onProgress={setTodayCount}
         />
       )}

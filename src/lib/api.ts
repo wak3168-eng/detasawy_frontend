@@ -182,7 +182,7 @@ export function setUserRole(
 
 export type StaffPrompt = {
   id: number;
-  kind: "picture" | "voice";
+  kind: "picture" | "scene" | "voice";
   mediaUrl: string;
   captionEn?: string;
   captionPs?: string;
@@ -197,7 +197,7 @@ export function getStaffPrompts(): Promise<StaffPrompt[]> {
 }
 
 export function uploadPrompt(input: {
-  kind: "picture" | "voice";
+  kind: "picture" | "scene" | "voice";
   media: File;
   captionEn?: string;
   captionPs?: string;
@@ -221,7 +221,7 @@ export function uploadPrompt(input: {
 }
 
 export function linkPrompt(input: {
-  kind: "picture" | "voice";
+  kind: "picture" | "scene" | "voice";
   mediaUrl: string;
   sourceUrl?: string;
   licence?: string;
@@ -276,7 +276,7 @@ export function endCampaign(id: number): Promise<StaffCampaign> {
 
 export type PromptItem = {
   id: number;
-  kind: "picture" | "voice";
+  kind: "picture" | "scene" | "voice";
   mediaUrl: string;
   captionEn?: string;
   captionPs?: string;
@@ -285,7 +285,7 @@ export type PromptItem = {
 };
 
 export function getPrompts(
-  kind: "picture" | "voice",
+  kind: "picture" | "scene" | "voice",
   count = 5,
 ): Promise<PromptItem[]> {
   return request(`/api/prompts?kind=${kind}&count=${count}`, {}, true);

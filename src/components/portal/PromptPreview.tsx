@@ -9,7 +9,7 @@ export default function PromptPreview({
   onClose,
 }: {
   title: string;
-  kind: "picture" | "voice";
+  kind: "picture" | "scene" | "voice";
   onClose: () => void;
 }) {
   const [items, setItems] = useState<PromptItem[] | null>(null);
@@ -62,7 +62,7 @@ export default function PromptPreview({
               No prompts yet — the team is stocking up.
             </p>
           )}
-          {item && item.kind === "picture" && (
+          {item && item.kind !== "voice" && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
