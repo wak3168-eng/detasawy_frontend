@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import AuthShell from "@/components/auth/AuthShell";
 import LoginForm from "@/components/auth/LoginForm";
 
@@ -11,14 +10,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Welcome back"
-      alt={
-        <>
-          No account?{" "}
-          <Link className="font-bold text-azure-deep" href="/signup">
-            Sign up
-          </Link>
-        </>
-      }
+      alt={<>Accounts are given out by the team while Detasawy is in pilot.</>}
     >
       <LoginForm />
     </AuthShell>

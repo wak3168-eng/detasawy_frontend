@@ -25,10 +25,10 @@ export default function Hero() {
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
-            href="/signup"
+            href="/login"
             className="rounded-full bg-azure px-6 py-3 text-sm font-bold text-white shadow-lg shadow-azure/30 transition-colors hover:bg-azure-deep"
           >
-            Sign up
+            Log in
           </Link>
           <a
             href="#how-it-works"

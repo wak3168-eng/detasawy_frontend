@@ -48,19 +48,6 @@ async function request<T>(
   return data as T;
 }
 
-export async function signup(input: {
-  name: string;
-  email: string;
-  password: string;
-}): Promise<Session> {
-  const session = await request<Session>("/api/auth/signup", {
-    method: "POST",
-    body: JSON.stringify({ ...input, consent: true }),
-  });
-  setAuth(session.token, session.user);
-  return session;
-}
-
 export async function login(email: string, password: string): Promise<Session> {
   const session = await request<Session>("/api/auth/login", {
     method: "POST",
@@ -163,6 +150,23 @@ export type AdminUser = {
 
 export function searchUsers(q: string): Promise<AdminUser[]> {
   return request(`/api/admin/users?q=${encodeURIComponent(q)}`, {}, true);
+}
+
+export type CreatedUser = AdminUser & {
+  startingPassword: string;
+  passwordGenerated: boolean;
+};
+
+export function createUser(input: {
+  name: string;
+  email: string;
+  password?: string;
+}): Promise<CreatedUser> {
+  return request(
+    "/api/admin/users/create",
+    { method: "POST", body: JSON.stringify(input) },
+    true,
+  );
 }
 
 export function setUserRole(
