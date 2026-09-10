@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import RequireAuth from "@/components/auth/RequireAuth";
 import Wizard from "@/components/onboarding/Wizard";
 
 export const metadata: Metadata = {
@@ -6,5 +8,11 @@ export const metadata: Metadata = {
 };
 
 export default function OnboardingPage() {
-  return <Wizard />;
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-ice" />}>
+      <RequireAuth>
+        <Wizard />
+      </RequireAuth>
+    </Suspense>
+  );
 }

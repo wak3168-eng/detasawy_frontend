@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { login } from "@/lib/api";
 import { Field } from "@/components/auth/Field";
@@ -9,6 +9,7 @@ import { profileToDraft } from "@/lib/profileSync";
 
 export default function LoginForm() {
   const router = useRouter();
+  const search = useSearchParams();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,8 +34,14 @@ export default function LoginForm() {
               local.photo,
             ),
           );
+          const next = search.get("next");
+          const safe = next && next.startsWith("/") && !next.startsWith("//");
           router.push(
-            session.user.role === "superadmin" ? "/admin" : "/contribute",
+            safe
+              ? next
+              : session.user.role === "superadmin"
+                ? "/admin"
+                : "/contribute",
           );
         } catch (err) {
           setError(err instanceof Error ? err.message : "Something went wrong.");

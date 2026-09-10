@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import AuthShell from "@/components/auth/AuthShell";
 import LoginForm from "@/components/auth/LoginForm";
 
@@ -12,7 +13,9 @@ export default function LoginPage() {
       title="Welcome back"
       alt={<>Accounts are given out by the team while Detasawy is in pilot.</>}
     >
-      <LoginForm />
+      <Suspense fallback={<div className="h-52" />}>
+        <LoginForm />
+      </Suspense>
     </AuthShell>
   );
 }
