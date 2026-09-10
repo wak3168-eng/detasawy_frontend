@@ -11,34 +11,67 @@ export type TickerItem = {
   en: string;
 };
 
-/**
- * Live counts from the community, with mission numbers standing in for
- * dimensions the data does not measure yet (speaker population).
- */
-export async function getLandingStats(): Promise<LandingStat[]> {
-  let live: {
-    contributors: number;
-    uniqueWords: number;
-    pictures: number;
-    districts: number;
-  } | null = null;
+export type LiveStats = {
+  contributors: number;
+  uniqueWords: number;
+  words: number;
+  voices: number;
+  pictures: number;
+  scenes: number;
+  districts: number;
+  tribes: number;
+  languages: number;
+  campaignsLive: number;
+  topDistricts: { id: string; name: string; words: number }[];
+  recent: { word: string; district?: string | null; tribe?: string | null }[];
+};
+
+/** One call behind everything the landing page shows. */
+export async function getLiveStats(): Promise<LiveStats | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/stats`);
-    if (res.ok) live = await res.json();
+    const res = await fetch(`${API_BASE}/api/stats`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as LiveStats;
   } catch {
-    live = null;
+    return null;
   }
+}
+
+export function statsToStrip(live: LiveStats | null): LandingStat[] {
   return [
     { value: live?.uniqueWords ?? 0, suffix: "", label: "words collected" },
+    { value: live?.voices ?? 0, suffix: "", label: "voices recorded" },
     { value: live?.contributors ?? 0, suffix: "", label: "contributors" },
-    { value: live?.pictures ?? 0, suffix: "", label: "pictures to name" },
-    { value: 40, suffix: "M+", label: "Pashto speakers worldwide" },
+    {
+      value: (live?.pictures ?? 0) + (live?.scenes ?? 0),
+      suffix: "",
+      label: "pictures waiting",
+    },
   ];
 }
 
-export const TICKER_ITEMS: TickerItem[] = [
+const FALLBACK_TICKER: TickerItem[] = [
   { ps: "څنګه يې؟", en: "“Singa ye?” — the question that starts it all" },
   { ps: "ښه يم", en: "“Kha yam” — Peshawar" },
   { ps: "ښه يوم", en: "“Kha yom” — Afridi, Khyber" },
   { en: "Every valley speaks its own Pashto. We are building for all of them." },
 ];
+
+/** The newest words as they land, falling back to the founding lines. */
+export function statsToTicker(live: LiveStats | null): TickerItem[] {
+  const recent = (live?.recent ?? []).filter((r) => r.word);
+  if (recent.length === 0) return FALLBACK_TICKER;
+  return recent.map((r) => ({
+    ps: r.word,
+    en: [r.tribe, r.district].filter(Boolean).join(", ") || "just added",
+  }));
+}
+
+/** Kept for callers that only want the four headline numbers. */
+export async function getLandingStats(): Promise<LandingStat[]> {
+  return statsToStrip(await getLiveStats());
+}
+
+export const TICKER_ITEMS = FALLBACK_TICKER;

@@ -235,6 +235,34 @@ export function linkPrompt(input: {
   );
 }
 
+export type BatchUploadResult = {
+  created: StaffPrompt[];
+  createdCount: number;
+  skipped: string[];
+  failed: { name: string; why: string }[];
+};
+
+/** Upload a whole folder: each file's name becomes its caption. */
+export function uploadPromptFolder(
+  kind: "picture" | "scene" | "voice",
+  files: File[],
+): Promise<BatchUploadResult> {
+  const token = getToken();
+  if (!token) return Promise.reject(new ApiError("Not logged in."));
+  const form = new FormData();
+  form.append("kind", kind);
+  for (const file of files) form.append("media", file);
+  return fetch(`${API_BASE}/api/admin/prompts/batch`, {
+    method: "POST",
+    headers: { Authorization: `Token ${token}` },
+    body: form,
+  }).then(async (res) => {
+    const data: unknown = await res.json().catch(() => null);
+    if (!res.ok) throw new ApiError(extractError(data, res.status));
+    return data as BatchUploadResult;
+  });
+}
+
 export function setPromptActive(
   id: number,
   active: boolean,

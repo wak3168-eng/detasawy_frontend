@@ -5,17 +5,17 @@ import LeaderboardSection from "@/components/leaderboard/LeaderboardSection";
 import HowItWorks from "@/components/sections/HowItWorks";
 import Mission from "@/components/sections/Mission";
 import StatsStrip from "@/components/stats/StatsStrip";
-import { getLandingStats, TICKER_ITEMS } from "@/lib/stats";
+import { getLiveStats, statsToStrip, statsToTicker } from "@/lib/stats";
 
 export default async function Home() {
-  const stats = await getLandingStats();
+  const live = await getLiveStats();
 
   return (
     <>
       <Header />
       <main>
         <Hero />
-        <StatsStrip stats={stats} ticker={TICKER_ITEMS} />
+        <StatsStrip stats={statsToStrip(live)} ticker={statsToTicker(live)} />
         <HowItWorks />
         <LeaderboardSection />
         <Mission />

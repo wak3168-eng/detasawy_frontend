@@ -4,14 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import {
   getStaffPrompts,
   linkPrompt,
+  uploadPromptFolder,
+  type BatchUploadResult,
   setPromptActive,
   uploadPrompt,
   type StaffPrompt,
 } from "@/lib/api";
 
 export default function PromptManager() {
-  const [kind, setKind] = useState<"picture" | "voice">("picture");
-  const [source, setSource] = useState<"file" | "link">("file");
+  const [kind, setKind] = useState<"picture" | "scene" | "voice">(
+    "picture",
+  );
+  const [source, setSource] = useState<"file" | "folder" | "link">("file");
+  const folderRef = useRef<HTMLInputElement>(null);
+  const [batch, setBatch] = useState<BatchUploadResult | null>(null);
   const [mediaUrl, setMediaUrl] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [licence, setLicence] = useState("");
@@ -32,6 +38,27 @@ export default function PromptManager() {
       captionEn: captionEn.trim() || undefined,
       captionPs: captionPs.trim() || undefined,
     };
+    if (source === "folder") {
+      const chosen = Array.from(folderRef.current?.files ?? []);
+      if (chosen.length === 0) {
+        setError("Choose a folder first.");
+        return;
+      }
+      setBusy(true);
+      setError(null);
+      setBatch(null);
+      try {
+        const result = await uploadPromptFolder(kind, chosen);
+        setBatch(result);
+        setPrompts((list) => [...result.created, ...(list ?? [])]);
+        if (folderRef.current) folderRef.current.value = "";
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed.");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     if (source === "file" && !media) {
       setError(`Choose a ${kind === "picture" ? "photo" : "audio"} file first.`);
       return;
@@ -81,7 +108,7 @@ export default function PromptManager() {
   return (
     <div className="rounded-3xl border border-mist bg-white/70 p-5">
       <div className="flex gap-2">
-        {(["picture", "voice"] as const).map((option) => (
+        {(["picture", "scene", "voice"] as const).map((option) => (
           <button
             key={option}
             onClick={() => setKind(option)}
@@ -91,12 +118,16 @@ export default function PromptManager() {
                 : "border border-mist text-ink-soft hover:bg-mist"
             }`}
           >
-            {option === "picture" ? "📷 Picture" : "🎙 Voice note"}
+            {option === "picture"
+              ? "📷 Picture"
+              : option === "scene"
+                ? "🏞 Scene"
+                : "🎙 Voice note"}
           </button>
         ))}
       </div>
       <div className="mt-2.5 flex gap-2">
-        {(["file", "link"] as const).map((option) => (
+        {(["file", "folder", "link"] as const).map((option) => (
           <button
             key={option}
             onClick={() => setSource(option)}
@@ -106,12 +137,31 @@ export default function PromptManager() {
                 : "border border-mist text-ink-soft hover:bg-mist"
             }`}
           >
-            {option === "file" ? "Upload a file" : "Paste a link"}
+            {option === "file"
+              ? "One file"
+              : option === "folder"
+                ? "A whole folder"
+                : "Paste a link"}
           </button>
         ))}
       </div>
       <div className="mt-3 space-y-2.5">
-        {source === "file" ? (
+        {source === "folder" ? (
+          <>
+            <input
+              ref={folderRef}
+              type="file"
+              multiple
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {...({ webkitdirectory: "" } as any)}
+              className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-azure file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-white"
+            />
+            <p className="text-[11px] text-ink-soft">
+              Each file is named after what it shows — apple.png becomes
+              &ldquo;apple&rdquo;. Anything already here is left alone.
+            </p>
+          </>
+        ) : source === "file" ? (
           <input
             ref={fileRef}
             type="file"
@@ -144,29 +194,60 @@ export default function PromptManager() {
             />
           </>
         )}
-        <input
-          value={captionEn}
-          onChange={(e) => setCaptionEn(e.target.value)}
-          placeholder={
-            kind === "picture" ? "English gloss (e.g. wooden door)" : "English note (optional)"
-          }
-          className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm outline-none transition-colors focus:border-azure"
-        />
-        <input
-          value={captionPs}
-          onChange={(e) => setCaptionPs(e.target.value)}
-          dir="rtl"
-          lang="ps"
-          placeholder="پښتو متن (اختیاري)"
-          className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-right font-naskh text-sm outline-none transition-colors focus:border-azure"
-        />
+        {source !== "folder" && (
+          <input
+            value={captionEn}
+            onChange={(e) => setCaptionEn(e.target.value)}
+            placeholder={
+              kind === "voice"
+                ? "English note (optional)"
+                : "English gloss (e.g. wooden door)"
+            }
+            className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-sm outline-none transition-colors focus:border-azure"
+          />
+        )}
+        {source !== "folder" && (
+          <input
+            value={captionPs}
+            onChange={(e) => setCaptionPs(e.target.value)}
+            dir="rtl"
+            lang="ps"
+            placeholder="پښتو متن (اختیاري)"
+            className="w-full rounded-2xl border border-mist bg-ice px-4 py-2.5 text-right font-naskh text-sm outline-none transition-colors focus:border-azure"
+          />
+        )}
         <button
           disabled={busy}
           onClick={upload}
           className="w-full rounded-full bg-azure py-2.5 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
         >
-          {busy ? "Saving…" : source === "file" ? "Upload" : "Add link"}
+          {busy
+            ? "Saving…"
+            : source === "folder"
+              ? "Upload folder"
+              : source === "file"
+                ? "Upload"
+                : "Add link"}
         </button>
+        {batch && (
+          <div className="rounded-2xl border border-sky bg-mist/40 p-3 text-xs">
+            <p className="font-bold text-azure-deep">
+              Added {batch.createdCount}
+              {batch.skipped.length > 0 &&
+                ` · ${batch.skipped.length} already here`}
+              {batch.failed.length > 0 && ` · ${batch.failed.length} skipped`}
+            </p>
+            {batch.failed.length > 0 && (
+              <ul className="mt-1 space-y-0.5 text-ink-soft">
+                {batch.failed.slice(0, 5).map((f) => (
+                  <li key={f.name}>
+                    {f.name} — {f.why}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
         {error && (
           <p className="text-center text-xs font-semibold text-[#b4552d]">
             {error}
