@@ -50,13 +50,14 @@ function Row({ item }: { item: DatasetItem }) {
                 <th className="py-2 pr-4">District</th>
                 <th className="py-2 pr-4">Tribe</th>
                 <th className="py-2 pr-4">Clan</th>
-                <th className="py-2 text-right">Voices</th>
+                <th className="py-2 pr-4 text-right">People</th>
+                <th className="py-2 text-right">Recorded</th>
               </tr>
             </thead>
             <tbody>
               {lines.length === 0 && (
                 <tr className="border-t border-mist">
-                  <td colSpan={6} className="py-4 text-center text-ink-soft">
+                  <td colSpan={7} className="py-4 text-center text-ink-soft">
                     No words yet.
                   </td>
                 </tr>
@@ -117,8 +118,11 @@ function Row({ item }: { item: DatasetItem }) {
                   <td className="py-2 pr-4 text-ink-soft">
                     {place.clan ?? "—"}
                   </td>
-                  <td className="py-2 text-right font-bold text-azure-deep">
+                  <td className="py-2 pr-4 text-right font-bold text-azure-deep">
                     {place.count}
+                  </td>
+                  <td className="py-2 text-right text-ink-soft">
+                    {place.voices ? `🎙 ${place.voices}` : "—"}
                   </td>
                 </tr>
               ))}

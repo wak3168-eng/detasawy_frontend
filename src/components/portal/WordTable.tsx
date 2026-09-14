@@ -54,7 +54,8 @@ export default function WordTable({ promptId }: { promptId: number }) {
                   <th className="py-1.5 pr-3 font-bold">District</th>
                   <th className="py-1.5 pr-3 font-bold">Tribe</th>
                   <th className="py-1.5 pr-3 font-bold">Clan</th>
-                  <th className="py-1.5 text-right font-bold">Voices</th>
+                  <th className="py-1.5 pr-3 text-right font-bold">People</th>
+                  <th className="py-1.5 text-right font-bold">Recorded</th>
                 </tr>
               </thead>
               <tbody>
@@ -65,8 +66,11 @@ export default function WordTable({ promptId }: { promptId: number }) {
                     <td className="py-2 pr-3 text-ink-soft">
                       {row.clan ?? "—"}
                     </td>
-                    <td className="py-2 text-right font-bold text-azure-deep">
+                    <td className="py-2 pr-3 text-right font-bold text-azure-deep">
                       {row.count}
+                    </td>
+                    <td className="py-2 text-right text-ink-soft">
+                      {row.voices ? `🎙 ${row.voices}` : "—"}
                     </td>
                   </tr>
                 ))}

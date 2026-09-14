@@ -372,7 +372,10 @@ export type WordRow = {
   district: string;
   tribe: string;
   clan?: string;
+  /** How many people from here gave this word. */
   count: number;
+  /** How many of them recorded it aloud. */
+  voices?: number;
 };
 
 export type WordGroup = {
@@ -380,6 +383,8 @@ export type WordGroup = {
   count: number;
   /** Other spellings people used for this same word. */
   variants?: { word: string; count: number }[];
+  /** Recordings across every place that gave this word. */
+  voices?: number;
   rows: WordRow[];
 };
 
