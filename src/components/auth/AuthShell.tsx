@@ -1,3 +1,4 @@
+import Logo from "@/components/brand/Logo";
 import Link from "next/link";
 
 export default function AuthShell({
@@ -14,11 +15,8 @@ export default function AuthShell({
   return (
     <main className="grid min-h-dvh place-items-center bg-ice px-5 py-10">
       <div className="w-full max-w-sm">
-        <Link href="/" className="mx-auto flex w-fit items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-xl bg-azure text-sm font-extrabold text-white">
-            D
-          </span>
-          <span className="font-extrabold tracking-tight">Detasawy</span>
+        <Link href="/" className="mx-auto flex w-fit items-center">
+          <Logo size={34} tagline />
         </Link>
         <h1 className="mt-6 text-center text-2xl font-extrabold tracking-tight">
           {title}

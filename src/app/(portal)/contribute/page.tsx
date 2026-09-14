@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import DailySetPanel from "@/components/portal/DailySetPanel";
 
 export const metadata: Metadata = {
-  title: "Contribute — Detasawy",
+  title: "Contribute",
 };
 
 export default function ContributePage() {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mark } from "@/components/brand/Logo";
 import PlayQuestion from "@/components/onboarding/PlayQuestion";
 
 export default function StepShell({
@@ -33,11 +34,8 @@ export default function StepShell({
             </svg>
           </button>
         ) : (
-          <Link
-            href="/"
-            className="grid size-9 shrink-0 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white"
-          >
-            D
+          <Link href="/" className="grid size-9 shrink-0 place-items-center">
+            <Mark size={32} />
           </Link>
         )}
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-mist">

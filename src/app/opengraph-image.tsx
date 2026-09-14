@@ -22,23 +22,43 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              background: "#769FCD",
-              color: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 38,
-              fontWeight: 800,
-            }}
-          >
-            D
+          <svg width="72" height="72" viewBox="0 0 96 96" fill="none">
+            <path d="M48 12 L81 31 L48 50 L15 31 Z" fill="#D9EAFD" />
+            <path d="M15 31 L15 69 L48 88 L48 50 Z" fill="#BCCCDC" />
+            <path d="M81 31 L81 69 L48 88 L48 50 Z" fill="#9AA6B2" />
+            <path
+              d="M72 42 L58 50 L58 58 L72 50 L72 58 L58 66"
+              stroke="#F7FBFC"
+              strokeWidth="5"
+              strokeLinejoin="miter"
+              strokeLinecap="round"
+            />
+            <path
+              d="M48 12 L81 31 L81 69 L48 88 L15 69 L15 31 Z"
+              stroke="#22303c"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M48 50 L48 88 M48 50 L15 31 M48 50 L81 31"
+              stroke="#22303c"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: 40, fontWeight: 800 }}>detasawy</div>
+            <div
+              style={{
+                fontSize: 15,
+                letterSpacing: 4,
+                color: "#769FCD",
+                fontWeight: 700,
+              }}
+            >
+              PUKHTO DATASETS
+            </div>
           </div>
-          <div style={{ fontSize: 36, fontWeight: 700 }}>Detasawy</div>
         </div>
         <div
           style={{

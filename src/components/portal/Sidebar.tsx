@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Logo, { Mark } from "@/components/brand/Logo";
 import AdminSidebar from "@/components/portal/AdminSidebar";
 import { getMyStats, logout } from "@/lib/api";
 import { getUser, hasToken, type Role } from "@/lib/auth";
@@ -180,11 +181,8 @@ export default function Sidebar() {
         </div>
         {/* desktop: full-height icon rail on the edge */}
         <div className="hidden h-full flex-col items-center gap-4 border-r border-mist bg-white/70 px-3 py-5 md:flex">
-          <Link
-            href="/"
-            className="grid size-9 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white"
-          >
-            D
+          <Link href="/" className="grid size-9 place-items-center">
+            <Mark size={32} />
           </Link>
           {avatar}
           <p className="text-sm font-extrabold text-azure-deep">0</p>
@@ -221,13 +219,8 @@ export default function Sidebar() {
     <aside className="p-4 pb-0 md:sticky md:top-0 md:h-dvh md:w-72 md:shrink-0 md:p-0">
       <div className="flex flex-col rounded-3xl border border-mist bg-white/70 p-5 md:h-full md:overflow-y-auto md:rounded-none md:border-0 md:border-r">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-lg bg-azure text-sm font-extrabold text-white">
-              D
-            </span>
-            <span className="text-[15px] font-extrabold tracking-tight">
-              Detasawy
-            </span>
+          <Link href="/" className="flex items-center">
+            <Logo size={30} />
           </Link>
           <button
             onClick={toggle}

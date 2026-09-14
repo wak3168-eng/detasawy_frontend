@@ -7,6 +7,8 @@ import { logout } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { clearDraft } from "@/lib/profileDraft";
 
+import { Mark } from "@/components/brand/Logo";
+
 const COLLAPSE_KEY = "detasawy:sidebar-collapsed";
 
 const NAV = [
@@ -132,11 +134,8 @@ export default function AdminSidebar() {
         </div>
         {/* desktop: dark rail */}
         <div className="hidden h-full flex-col items-center gap-4 bg-ink px-3 py-5 text-white md:flex">
-          <Link
-            href="/admin"
-            className="grid size-9 place-items-center rounded-lg bg-azure text-sm font-extrabold"
-          >
-            D
+          <Link href="/admin" className="grid size-9 place-items-center">
+            <Mark size={32} tone="light" />
           </Link>
           <span className="rounded-full bg-azure/30 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wider text-sky">
             ADMIN
@@ -171,9 +170,7 @@ export default function AdminSidebar() {
       <div className="flex flex-col rounded-3xl bg-ink p-5 text-white md:h-full md:overflow-y-auto md:rounded-none">
         <div className="flex items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-lg bg-azure text-sm font-extrabold">
-              D
-            </span>
+            <Mark size={30} tone="light" />
             <span className="text-[15px] font-extrabold tracking-tight">
               Detasawy
             </span>
