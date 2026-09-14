@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import ProfileHydrator from "@/components/portal/ProfileHydrator";
 import Sidebar from "@/components/portal/Sidebar";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function PortalLayout({
   children,

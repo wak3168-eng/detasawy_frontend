@@ -192,6 +192,30 @@ export type StaffPrompt = {
   createdAt: string;
 };
 
+export type DatasetItem = {
+  id: number;
+  kind: "picture" | "scene" | "voice";
+  caption: string;
+  mediaUrl: string;
+  answers: number;
+  voices: number;
+  words: WordGroup[];
+};
+
+export function getDataset(opts: {
+  q?: string;
+  all?: boolean;
+  limit?: number;
+  offset?: number;
+}): Promise<{ total: number; items: DatasetItem[] }> {
+  const params = new URLSearchParams();
+  if (opts.q) params.set("q", opts.q);
+  if (opts.all) params.set("all", "1");
+  params.set("limit", String(opts.limit ?? 20));
+  params.set("offset", String(opts.offset ?? 0));
+  return request(`/api/admin/dataset?${params}`, {}, true);
+}
+
 export function getStaffPrompts(): Promise<StaffPrompt[]> {
   return request("/api/admin/prompts", {}, true);
 }

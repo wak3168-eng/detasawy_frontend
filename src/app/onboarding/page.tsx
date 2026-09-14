@@ -4,7 +4,8 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import Wizard from "@/components/onboarding/Wizard";
 
 export const metadata: Metadata = {
-  title: "Set up your profile — Detasawy",
+  robots: { index: false, follow: false },
+  title: "Set up your profile",
 };
 
 export default function OnboardingPage() {

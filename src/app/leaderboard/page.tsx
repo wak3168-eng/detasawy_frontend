@@ -5,7 +5,7 @@ import LeaderboardBoard from "@/components/leaderboard/LeaderboardBoard";
 import { getDistrictLeaderboard } from "@/lib/leaderboard";
 
 export const metadata: Metadata = {
-  title: "Leaderboard — Detasawy",
+  title: "Leaderboard",
 };
 
 export default async function LeaderboardPage() {

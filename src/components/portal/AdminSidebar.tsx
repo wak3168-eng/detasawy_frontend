@@ -23,6 +23,16 @@ const NAV = [
     ),
   },
   {
+    href: "/admin/dataset",
+    label: "Dataset",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M3 9h18M9 9v11M3 14h18" />
+      </svg>
+    ),
+  },
+  {
     href: "/contribute",
     label: "View as contributor",
     icon: (
