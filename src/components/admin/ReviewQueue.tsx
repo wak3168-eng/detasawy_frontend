@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  actOnSuggestion,
-  getSuggestions,
-  type StaffSuggestion,
-} from "@/lib/api";
+import { useState } from "react";
+import { actOnSuggestion, type StaffSuggestion } from "@/lib/api";
+import { ErrorNotice, Loading, useAdminQuery } from "./AdminUI";
 import { fetchRef } from "@/lib/refClient";
 import type { RefOption } from "@/lib/refTypes";
 
@@ -42,15 +39,20 @@ function SuggestionCard({
       const endpoint = suggestion.parentId
         ? `/api/ref/tribes?parent=${suggestion.parentId}`
         : "/api/ref/tribes";
-      fetchRef(endpoint).then(setSiblings, () => setSiblings([]));
+      fetchRef(endpoint).then(setSiblings, () => {
+        setError(
+          "Could not load merge targets. Close and reopen the merge picker to retry.",
+        );
+        setMerging(false);
+      });
     }
   };
 
   return (
-    <div className="rounded-3xl border border-mist bg-white/70 p-5">
+    <div className="rounded-lg border border-mist bg-white/70 p-5">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="text-lg font-extrabold">{suggestion.name}</p>
-        <span className="rounded-full bg-mist px-2.5 py-0.5 text-[11px] font-bold text-azure-deep">
+        <span className="rounded-md bg-mist px-2.5 py-0.5 text-[11px] font-bold text-azure-deep">
           {suggestion.kind}
         </span>
         {suggestion.parentName && (
@@ -64,13 +66,15 @@ function SuggestionCard({
           </span>
         )}
         {suggestion.live && (
-          <span className="rounded-full bg-[#e6f2e6] px-2.5 py-0.5 text-[11px] font-bold text-[#3f7a3f]">
+          <span className="rounded-md bg-[#e6f2e6] px-2.5 py-0.5 text-[11px] font-bold text-[#3f7a3f]">
             live
           </span>
         )}
       </div>
       {suggestion.suggestedBy && (
-        <p className="mt-1 text-xs text-ink-soft">by {suggestion.suggestedBy}</p>
+        <p className="mt-1 text-xs text-ink-soft">
+          by {suggestion.suggestedBy}
+        </p>
       )}
       {suggestion.mergeIntoName && !merging && (
         <p className="mt-2 rounded-xl bg-[#f5ead8] px-3 py-2 text-xs font-semibold text-[#8a5a1f]">
@@ -103,7 +107,11 @@ function SuggestionCard({
               >
                 {option.name}
                 {option.ps && (
-                  <span dir="rtl" lang="ps" className="ms-2 font-naskh text-ink-soft">
+                  <span
+                    dir="rtl"
+                    lang="ps"
+                    className="ms-2 font-naskh text-ink-soft"
+                  >
                     {option.ps}
                   </span>
                 )}
@@ -127,14 +135,14 @@ function SuggestionCard({
               <button
                 disabled={busy}
                 onClick={() => act("merge", suggestion.mergeIntoId!)}
-                className="rounded-full bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
+                className="rounded-md bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
               >
                 Merge into {suggestion.mergeIntoName}
               </button>
               <button
                 disabled={busy}
                 onClick={() => act(suggestion.live ? "keep" : "approve")}
-                className="rounded-full border border-sky px-5 py-2 text-sm font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
+                className="rounded-md border border-sky px-5 py-2 text-sm font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
               >
                 Keep as its own
               </button>
@@ -143,7 +151,7 @@ function SuggestionCard({
             <button
               disabled={busy}
               onClick={() => act(suggestion.live ? "keep" : "approve")}
-              className="rounded-full bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
+              className="rounded-md bg-azure px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-azure-deep disabled:opacity-50"
             >
               {suggestion.live ? "Keep" : "Approve"}
             </button>
@@ -152,7 +160,7 @@ function SuggestionCard({
             <button
               disabled={busy}
               onClick={openMerge}
-              className="rounded-full border border-sky px-5 py-2 text-sm font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
+              className="rounded-md border border-sky px-5 py-2 text-sm font-bold text-azure-deep transition-colors hover:bg-mist disabled:opacity-50"
             >
               Merge…
             </button>
@@ -160,7 +168,7 @@ function SuggestionCard({
           <button
             disabled={busy}
             onClick={() => act("reject")}
-            className="rounded-full px-5 py-2 text-sm font-bold text-ink-soft transition-colors hover:bg-mist disabled:opacity-50"
+            className="rounded-md px-5 py-2 text-sm font-bold text-ink-soft transition-colors hover:bg-mist disabled:opacity-50"
           >
             {suggestion.live ? "Remove" : "Reject"}
           </button>
@@ -174,48 +182,40 @@ function SuggestionCard({
 }
 
 export default function ReviewQueue() {
-  const [items, setItems] = useState<StaffSuggestion[] | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    getSuggestions("review").then(setItems, () => setFailed(true));
-  }, []);
-
-  if (failed) {
-    return (
-      <p className="rounded-3xl border border-mist bg-white/70 p-7 text-center text-sm text-ink-soft">
-        Couldn&apos;t load the queue — are you logged in as a reviewer?
-      </p>
-    );
-  }
-
-  if (items === null) {
-    return (
-      <div className="space-y-3">
-        {[0, 1].map((i) => (
-          <div key={i} className="h-28 animate-pulse rounded-3xl bg-mist/60" />
-        ))}
-      </div>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <p className="rounded-3xl border border-mist bg-white/70 p-7 text-center text-sm text-ink-soft">
-        Nothing to tidy up — every entry people added looks right. 🎉
-      </p>
-    );
-  }
-
+  const { data, error, reload } = useAdminQuery<StaffSuggestion[]>(
+    "/api/admin/suggestions?status=review",
+  );
+  if (error) return <ErrorNotice message={error} retry={reload} />;
+  if (!data) return <Loading />;
   return (
-    <div className="space-y-3.5">
-      {items.map((suggestion) => (
-        <SuggestionCard
-          key={suggestion.id}
-          suggestion={suggestion}
-          onDone={(id) => setItems((list) => list?.filter((s) => s.id !== id) ?? null)}
-        />
-      ))}
-    </div>
+    <>
+      <div className="admin-toolbar">
+        <p className="admin-note">
+          Up to 50 suggestions, most suggested first. Decisions apply to
+          reference names, not dataset responses.
+        </p>
+        <button className="admin-button" onClick={reload}>
+          Refresh queue
+        </button>
+      </div>
+      {!data.length ? (
+        <div className="admin-panel admin-empty">
+          <h2 className="font-bold text-ink">
+            No reference suggestions awaiting review
+          </h2>
+          <p>New suggestions will appear here as contributors submit them.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {data.map((suggestion) => (
+            <SuggestionCard
+              key={suggestion.id}
+              suggestion={suggestion}
+              onDone={reload}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }

@@ -27,7 +27,7 @@ function extractError(data: unknown, status: number): string {
   return "Something went wrong. Please try again.";
 }
 
-async function request<T>(
+export async function request<T>(
   path: string,
   options: RequestInit = {},
   authed = false,
@@ -41,10 +41,11 @@ async function request<T>(
     if (!token) throw new ApiError("Not logged in.");
     headers.Authorization = `Token ${token}`;
   }
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const response = await fetch(`${API_BASE}${path}`, { ...options, ...(authed ? { cache: "no-store" as const } : {}), headers });
   if (response.status === 204) return undefined as T;
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) throw new ApiError(extractError(data, response.status));
+  if (data === null) throw new ApiError("The server returned an invalid response. Please try again.");
   return data as T;
 }
 
@@ -189,6 +190,8 @@ export type StaffPrompt = {
   active: boolean;
   servedCount: number;
   licence?: string;
+  sourceUrl?: string;
+  answers?: number;
   createdAt: string;
 };
 
@@ -223,6 +226,8 @@ export function getStaffPrompts(): Promise<StaffPrompt[]> {
 export function uploadPrompt(input: {
   kind: "picture" | "scene" | "voice";
   media: File;
+  sourceUrl?: string;
+  licence?: string;
   captionEn?: string;
   captionPs?: string;
 }): Promise<StaffPrompt> {
@@ -231,6 +236,8 @@ export function uploadPrompt(input: {
   const form = new FormData();
   form.append("kind", input.kind);
   form.append("media", input.media);
+  if (input.sourceUrl) form.append("sourceUrl", input.sourceUrl);
+  if (input.licence) form.append("licence", input.licence);
   if (input.captionEn) form.append("captionEn", input.captionEn);
   if (input.captionPs) form.append("captionPs", input.captionPs);
   return fetch(`${API_BASE}/api/admin/prompts`, {

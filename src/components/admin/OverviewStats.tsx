@@ -1,103 +1,164 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { getOverview, type OverviewStats as Stats } from "@/lib/api";
-
-const fmt = (n: number | undefined) =>
-  n === undefined ? "…" : n.toLocaleString("en");
-
-function Tile({
-  value,
-  label,
-  sub,
-}: {
-  value: string;
-  label: string;
-  sub?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-mist bg-white/70 px-3 py-3.5">
-      <p className="text-xl font-extrabold text-azure-deep">{value}</p>
-      <p className="mt-0.5 text-[11px] font-semibold text-ink-soft">{label}</p>
-      {sub && <p className="mt-1 text-[10px] text-ink-soft/80">{sub}</p>}
-    </div>
-  );
-}
-
+import Link from "next/link";
+import type { OverviewStats as Stats } from "@/lib/api";
+import { ErrorNotice, Loading, useAdminQuery } from "./AdminUI";
+import { useAdminUser } from "./AdminWorkspace";
+import { allowed } from "./sections";
 export default function OverviewStats() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const s = stats ?? undefined;
-
-  useEffect(() => {
-    getOverview().then(setStats, () => {});
-  }, []);
-
+  const {
+    data: s,
+    error,
+    reload,
+  } = useAdminQuery<Stats>("/api/admin/overview");
+  const role = useAdminUser()?.role ?? "contributor";
+  if (error) return <ErrorNotice message={error} retry={reload} />;
+  if (!s) return <Loading />;
+  const coverage = s.pictures
+    ? Math.round((s.picturesAnswered / s.pictures) * 100)
+    : 0;
+  const voice = s.contributions
+    ? Math.round((s.voiceNotes / s.contributions) * 100)
+    : 0;
+  const tiles = [
+    [
+      "Contributions",
+      s.contributions,
+      `${s.contributionsToday} today · ${s.contributionsWeek} this week`,
+    ],
+    [
+      "Audio recordings",
+      s.voiceNotes,
+      `${voice}% of contributions include audio`,
+    ],
+    ["Active contributors", s.contributors, `${s.users} registered accounts`],
+    [
+      "Districts represented",
+      s.districtsCovered,
+      "Based on contribution metadata",
+    ],
+  ] as const;
+  const tasks = [
+    {
+      slug: "prompts",
+      title: "Manage the prompt library",
+      detail: `${s.picturesActive} active pictures available to contributors`,
+      action: "Open library",
+    },
+    {
+      slug: "review",
+      title: "Review reference suggestions",
+      detail: `${s.suggestionsPending} pending suggestions for reference data`,
+      action: "View queue",
+    },
+    {
+      slug: "contributions",
+      title: "Inspect collected responses",
+      detail: "Read original text and listen to available recordings",
+      action: "View records",
+    },
+    {
+      slug: "team",
+      title: "Manage people and access",
+      detail: `${s.profilesCompleted} of ${s.users} profiles completed`,
+      action: "View people",
+    },
+  ];
   return (
-    <div className="space-y-2.5">
-      <div className="rounded-3xl border border-mist bg-white/70 p-5">
-        <div className="flex items-center justify-around text-center">
-          <div>
-            <p className="text-3xl font-extrabold tracking-tight text-azure-deep">
-              {fmt(s?.uniqueWords)}
-            </p>
-            <p className="mt-1 text-xs font-semibold text-ink-soft">
-              unique words
+    <>
+      <div className="admin-toolbar">
+        <span className="admin-note">
+          Collection activity · all time unless indicated
+        </span>
+        <button className="admin-button" onClick={reload}>
+          Refresh data
+        </button>
+      </div>
+      <div className="admin-stats">
+        {tiles.map(([label, value, detail]) => (
+          <div className="admin-stat" key={label}>
+            <p>{label}</p>
+            <strong>{value.toLocaleString()}</strong>
+            <small>{detail}</small>
+          </div>
+        ))}
+      </div>
+      <div className="admin-columns">
+        <section className="admin-panel">
+          <div className="admin-panel-heading">
+            <div>
+              <h2>Collection coverage</h2>
+              <p>How much of the picture library has a response?</p>
+            </div>
+            <span className="admin-badge">{coverage}% answered</span>
+          </div>
+          <div className="admin-coverage">
+            <div>
+              <strong>{s.picturesAnswered.toLocaleString()}</strong>
+              <span> / {s.pictures.toLocaleString()} pictures answered</span>
+            </div>
+            <div
+              className="admin-progress"
+              role="progressbar"
+              aria-label="Pictures answered"
+              aria-valuenow={coverage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div style={{ width: `${coverage}%` }} />
+            </div>
+            <div className="admin-coverage-legend">
+              <span>
+                <i />
+                Answered
+              </span>
+              <span>
+                {Math.max(0, s.pictures - s.picturesAnswered).toLocaleString()}{" "}
+                awaiting a first response
+              </span>
+            </div>
+            <p className="admin-note">
+              Responses are collected source data. These counts do not indicate
+              linguistic verification or dataset readiness.
             </p>
           </div>
-          <span className="text-lg text-ink-soft/50">from</span>
-          <div>
-            <p className="text-3xl font-extrabold tracking-tight">
-              {fmt(s?.pictures)}
-            </p>
-            <p className="mt-1 text-xs font-semibold text-ink-soft">pictures</p>
+          <div className="admin-summary">
+            <div>
+              <strong>{s.uniqueWords}</strong>
+              <span>Unique text responses</span>
+            </div>
+            <div>
+              <strong>{s.campaignsLive}</strong>
+              <span>Live campaigns</span>
+            </div>
           </div>
-        </div>
-        <p className="mt-3 text-center text-[11px] text-ink-soft">
-          {fmt(s?.contributions)} answers · {fmt(s?.voiceNotes)} with voice ·{" "}
-          {fmt(s?.picturesAnswered)} pictures answered
-        </p>
+        </section>
+        <section className="admin-panel">
+          <div className="admin-panel-heading">
+            <div>
+              <h2>Workspace actions</h2>
+              <p>Keep collection and review moving.</p>
+            </div>
+          </div>
+          {tasks
+            .filter((t) => allowed(t.slug, role))
+            .map((t) => (
+              <div className="admin-task" key={t.slug}>
+                <div>
+                  <p>{t.title}</p>
+                  <small>{t.detail}</small>
+                </div>
+                <Link className="admin-button" href={`/admin/${t.slug}`}>
+                  {t.action}
+                </Link>
+              </div>
+            ))}
+        </section>
       </div>
-
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Tile
-          value={fmt(s?.users)}
-          label="accounts"
-          sub={`${fmt(s?.profilesCompleted)} profiles done`}
-        />
-        <Tile
-          value={fmt(s?.contributors)}
-          label="contributors"
-          sub="have answered"
-        />
-        <Tile
-          value={fmt(s?.contributionsToday)}
-          label="answers today"
-          sub={`${fmt(s?.contributionsWeek)} this week`}
-        />
-        <Tile
-          value={fmt(s?.districtsCovered)}
-          label="districts covered"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Tile
-          value={fmt(s?.picturesActive)}
-          label="pictures live"
-        />
-        <Tile
-          value={fmt(s?.campaignsLive)}
-          label="live campaigns"
-        />
-        <Tile
-          value={fmt(s?.suggestionsPending)}
-          label="pending review"
-        />
-        <Tile
-          value={`${fmt(s?.tribes)} · ${fmt(s?.languages)}`}
-          label="tribes · languages"
-        />
-      </div>
-    </div>
+      <p className="admin-note">
+        Reference catalogue: {s.tribes.toLocaleString()} tribes ·{" "}
+        {s.languages.toLocaleString()} languages. Reference review is separate
+        from contribution quality review.
+      </p>
+    </>
   );
 }

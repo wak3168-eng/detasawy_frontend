@@ -1,245 +1,214 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { getDataset, type DatasetItem } from "@/lib/api";
-
-const PAGE = 20;
-
-function Row({ item }: { item: DatasetItem }) {
-  const [open, setOpen] = useState(false);
-
-  // every district line of every word, so the picture and the word can span
-  // their own rows and the hierarchy reads straight across
-  const lines = item.words.flatMap((word, wi) =>
-    word.rows.map((place, pi) => ({ word, place, wi, pi })),
-  );
-
-  return (
-    <div className="rounded-3xl border border-mist bg-white/70">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3.5 p-4 text-left"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.mediaUrl}
-          alt=""
-          className="size-14 shrink-0 rounded-xl border border-mist bg-white object-contain p-1"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-extrabold">{item.caption}</p>
-          <p className="text-[11px] text-ink-soft">
-            {item.words.length} word{item.words.length === 1 ? "" : "s"} ·{" "}
-            {item.answers} answer{item.answers === 1 ? "" : "s"}
-            {item.voices > 0 && ` · ${item.voices} with voice`}
-            {item.kind === "scene" && " · scene"}
-          </p>
-        </div>
-        <span className="shrink-0 text-xs font-bold text-azure-deep">
-          {open ? "Hide" : "Open"}
-        </span>
-      </button>
-
-      {open && (
-        <div className="overflow-x-auto border-t border-mist px-4 pb-4">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="text-[11px] font-bold uppercase tracking-wide text-ink-soft">
-                <th className="py-2 pr-4">Picture</th>
-                <th className="py-2 pr-4">Word</th>
-                <th className="py-2 pr-4">District</th>
-                <th className="py-2 pr-4">Tribe</th>
-                <th className="py-2 pr-4">Clan</th>
-                <th className="py-2 pr-4 text-right">People</th>
-                <th className="py-2 text-right">Recorded</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.length === 0 && (
-                <tr className="border-t border-mist">
-                  <td colSpan={7} className="py-4 text-center text-ink-soft">
-                    No words yet.
-                  </td>
-                </tr>
-              )}
-              {lines.map(({ word, place, wi, pi }) => (
-                <tr
-                  key={`${wi}-${pi}`}
-                  className={pi === 0 ? "border-t border-mist" : ""}
-                >
-                  {wi === 0 && pi === 0 && (
-                    <td
-                      rowSpan={lines.length}
-                      className="border-t border-mist py-2 pr-4 align-top"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={item.mediaUrl}
-                        alt={item.caption}
-                        className="size-20 rounded-xl border border-mist bg-white object-contain p-1"
-                      />
-                      <p className="mt-1 max-w-24 text-[11px] font-bold">
-                        {item.caption}
-                      </p>
-                    </td>
-                  )}
-                  {pi === 0 && (
-                    <td
-                      rowSpan={word.rows.length}
-                      className="py-2 pr-4 align-top"
-                    >
-                      <span
-                        dir="rtl"
-                        lang="ps"
-                        className="font-naskh text-xl font-bold"
-                      >
-                        {word.word}
-                      </span>
-                      <span className="ms-2 text-xs font-bold text-azure-deep">
-                        ×{word.count}
-                      </span>
-                      {word.variants && word.variants.length > 0 && (
-                        <p className="mt-0.5 text-[11px] text-ink-soft">
-                          also{" "}
-                          {word.variants.map((v, i) => (
-                            <span key={v.word}>
-                              {i > 0 && ", "}
-                              <span dir="rtl" lang="ps" className="font-naskh">
-                                {v.word}
-                              </span>
-                            </span>
-                          ))}
-                        </p>
-                      )}
-                    </td>
-                  )}
-                  <td className="py-2 pr-4 font-bold">{place.district}</td>
-                  <td className="py-2 pr-4">{place.tribe}</td>
-                  <td className="py-2 pr-4 text-ink-soft">
-                    {place.clan ?? "—"}
-                  </td>
-                  <td className="py-2 pr-4 text-right font-bold text-azure-deep">
-                    {place.count}
-                  </td>
-                  <td className="py-2 text-right text-ink-soft">
-                    {place.voices ? `🎙 ${place.voices}` : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
+import Link from "next/link";
+import { useState } from "react";
+import type { DatasetItem } from "@/lib/api";
+import {
+  ErrorNotice,
+  Loading,
+  Media,
+  Pagination,
+  Search,
+  useAdminQuery,
+} from "./AdminUI";
 export default function DatasetPanel() {
-  const [items, setItems] = useState<DatasetItem[] | null>(null);
-  const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [query, setQuery] = useState("");
-  const [showAll, setShowAll] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    setItems(null);
-    setFailed(false);
-    getDataset({ q: query, all: showAll, limit: PAGE, offset }).then(
-      (res) => {
-        if (!alive) return;
-        setItems(res.items);
-        setTotal(res.total);
-      },
-      () => alive && setFailed(true),
-    );
-    return () => {
-      alive = false;
-    };
-  }, [query, showAll, offset]);
-
+  const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
+  const [all, setAll] = useState(false);
+  const [selected, setSelected] = useState<DatasetItem>();
+  const query = new URLSearchParams({
+    q,
+    all: all ? "1" : "0",
+    limit: "20",
+    offset: String((page - 1) * 20),
+  });
+  const { data, error, reload } = useAdminQuery<{
+    items: DatasetItem[];
+    total: number;
+  }>(`/api/admin/dataset?${query}`);
+  const reset = () => {
+    setPage(1);
+    setSelected(undefined);
+  };
   return (
-    <div>
-      <div className="flex flex-wrap gap-2">
-        <input
-          value={query}
-          onChange={(e) => {
-            setOffset(0);
-            setQuery(e.target.value);
+    <>
+      <div className="admin-toolbar">
+        <Search
+          value={q}
+          onChange={(v) => {
+            setQ(v);
+            reset();
           }}
-          placeholder="Search a picture…"
-          className="min-w-0 flex-1 rounded-2xl border border-mist bg-white/70 px-4 py-2.5 text-sm outline-none transition-colors focus:border-azure"
+          label="Search prompt caption…"
         />
-        <button
-          onClick={() => {
-            setOffset(0);
-            setShowAll((v) => !v);
+        <select
+          aria-label="Dataset coverage"
+          value={all ? "all" : "answered"}
+          onChange={(e) => {
+            setAll(e.target.value === "all");
+            reset();
           }}
-          className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-            showAll
-              ? "bg-ink text-white"
-              : "border border-mist text-ink-soft hover:bg-mist"
-          }`}
         >
-          {showAll ? "All pictures" : "Answered only"}
-        </button>
+          <option value="answered">Answered prompts</option>
+          <option value="all">All prompts</option>
+        </select>
       </div>
-
-      <p className="mt-2 text-[11px] text-ink-soft">
-        {showAll
-          ? "Every picture in the collection."
-          : "Pictures people have named, most answered first."}{" "}
-        {total > 0 && `${total} in total.`}
-      </p>
-
-      <div className="mt-4 space-y-2.5">
-        {failed && (
-          <p className="rounded-3xl border border-mist bg-white/70 p-7 text-center text-sm text-ink-soft">
-            Couldn&apos;t load the dataset.
-          </p>
-        )}
-        {items === null && !failed && (
-          <>
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-20 animate-pulse rounded-3xl bg-mist/60"
-              />
-            ))}
-          </>
-        )}
-        {items?.length === 0 && (
-          <p className="rounded-3xl border border-mist bg-white/70 p-7 text-center text-sm text-ink-soft">
-            {query
-              ? `Nothing matching “${query}”.`
-              : "No words collected yet — they appear here as people answer."}
-          </p>
-        )}
-        {items?.map((item) => <Row key={item.id} item={item} />)}
-      </div>
-
-      {total > PAGE && (
-        <div className="mt-4 flex items-center justify-between">
-          <button
-            disabled={offset === 0}
-            onClick={() => setOffset((o) => Math.max(0, o - PAGE))}
-            className="rounded-full border border-mist px-4 py-2 text-xs font-bold text-ink-soft transition-colors hover:bg-mist disabled:opacity-40"
-          >
-            Back
-          </button>
-          <span className="text-[11px] text-ink-soft">
-            {offset + 1}–{Math.min(offset + PAGE, total)} of {total}
-          </span>
-          <button
-            disabled={offset + PAGE >= total}
-            onClick={() => setOffset((o) => o + PAGE)}
-            className="rounded-full border border-mist px-4 py-2 text-xs font-bold text-ink-soft transition-colors hover:bg-mist disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
+      <ErrorNotice message={error} retry={reload} />
+      {!data && !error && <Loading />}
+      {data && (
+        <section className="admin-panel">
+          <div className="admin-panel-heading">
+            <div>
+              <h2>Response coverage by prompt</h2>
+              <p>
+                {data.total.toLocaleString()} matching prompts · most answered
+                first
+              </p>
+            </div>
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Prompt</th>
+                  <th>Responses</th>
+                  <th>Audio</th>
+                  <th>Text groups</th>
+                  <th>
+                    <span className="sr-only">Inspect</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <div className="admin-title-cell">
+                        <Media
+                          kind={item.kind}
+                          url={item.mediaUrl}
+                          title={item.caption}
+                        />
+                        <div>
+                          <strong>{item.caption}</strong>
+                          <small>
+                            {item.kind} · #{item.id}
+                          </small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{item.answers}</td>
+                    <td>{item.voices}</td>
+                    <td>{item.words.length}</td>
+                    <td>
+                      <button
+                        className="admin-button"
+                        aria-expanded={selected?.id === item.id}
+                        onClick={() =>
+                          setSelected(
+                            selected?.id === item.id ? undefined : item,
+                          )
+                        }
+                      >
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!data.items.length && (
+            <div className="admin-empty">
+              No prompts match this view. Try all prompts or a different search.
+            </div>
+          )}
+          <Pagination
+            page={page}
+            total={data.total}
+            onPage={(p) => {
+              setPage(p);
+              setSelected(undefined);
+            }}
+          />
+        </section>
       )}
-    </div>
+      {selected && (
+        <section className="admin-panel admin-detail">
+          <div className="admin-panel-heading">
+            <div>
+              <h2>{selected.caption}</h2>
+              <p>Grouped text responses and their reported origin</p>
+            </div>
+            <button
+              className="admin-button"
+              onClick={() => setSelected(undefined)}
+            >
+              Close
+            </button>
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Response</th>
+                  <th>District</th>
+                  <th>Tribe / clan</th>
+                  <th>People</th>
+                  <th>Audio</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selected.words.flatMap((word, wi) =>
+                  word.rows.map((place, pi) => (
+                    <tr key={`${wi}-${pi}`}>
+                      <td>
+                        <span dir="auto" className="admin-response">
+                          {word.word || "Audio only"}
+                        </span>
+                        {word.variants?.length ? (
+                          <small className="block text-ink-soft">
+                            Variants:{" "}
+                            {word.variants.map((v) => v.word).join(", ")}
+                          </small>
+                        ) : null}
+                      </td>
+                      <td>{place.district}</td>
+                      <td>
+                        {place.tribe}
+                        {place.clan ? ` / ${place.clan}` : ""}
+                      </td>
+                      <td>{place.count}</td>
+                      <td>{place.voices}</td>
+                    </tr>
+                  )),
+                )}
+              </tbody>
+            </table>
+          </div>
+          {!selected.words.length && (
+            <p className="admin-empty">
+              No text groups available. Open original records to inspect
+              audio-only contributions.
+            </p>
+          )}
+          <div className="admin-panel-heading">
+            <p>
+              {selected.answers} responses · {selected.voices} recordings
+            </p>
+            <Link
+              className="admin-button primary"
+              href={`/admin/contributions?prompt=${selected.id}`}
+            >
+              Open original records
+            </Link>
+          </div>
+        </section>
+      )}
+      <p className="admin-note">
+        Text groups are automatic aggregations, not verified dictionary entries.
+        Original contribution records preserve the submitted text and available
+        audio.
+      </p>
+    </>
   );
 }
