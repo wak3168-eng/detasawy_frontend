@@ -132,7 +132,7 @@ export default function ReplyActivity({
             </div>
 
             <div className="mt-4">
-              <VoiceRecorder key={prompt.id} onAudio={setAudio} />
+              <VoiceRecorder key={prompt.id} onAudio={setAudio} required />
             </div>
 
             <div className="mt-3">
@@ -162,6 +162,7 @@ export default function ReplyActivity({
               </button>
               <button
                 onClick={next}
+                disabled={busy}
                 className="mt-2.5 w-full py-2 text-center text-sm font-semibold text-ink-soft transition-colors hover:text-azure-deep"
               >
                 Skip this one

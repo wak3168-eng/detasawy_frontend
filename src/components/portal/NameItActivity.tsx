@@ -108,7 +108,7 @@ export default function NameItActivity({
               That&apos;s all for now.
             </p>
             <p className="mt-1.5 text-sm text-ink-soft">
-              You have named every picture we have.
+              You have reached the end of this batch.
             </p>
             <button
               onClick={onClose}
@@ -171,6 +171,7 @@ export default function NameItActivity({
               </button>
               <button
                 onClick={next}
+                disabled={busy}
                 className="mt-2.5 w-full py-2 text-center text-sm font-semibold text-ink-soft transition-colors hover:text-azure-deep"
               >
                 Skip — I don&apos;t know this one
