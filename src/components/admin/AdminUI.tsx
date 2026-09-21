@@ -12,6 +12,7 @@ export function useAdminQuery<T>(url: string) {
   const [revision, setRevision] = useState(0);
   const identity = `${url}:${revision}`;
   const [result, setResult] = useState<{
+    url: string;
     identity: string;
     data?: T;
     error?: string;
@@ -20,17 +21,19 @@ export function useAdminQuery<T>(url: string) {
     let alive = true;
     request<T>(url, {}, true).then(
       (data) => {
-        if (alive) setResult({ identity, data });
+        if (alive) setResult({ url, identity, data });
       },
       (error) => {
         if (alive)
-          setResult({
+          setResult((previous) => ({
+            url,
             identity,
+            data: previous?.url === url ? previous.data : undefined,
             error:
               error instanceof Error
                 ? error.message
                 : "Could not load this page.",
-          });
+          }));
       },
     );
     return () => {
@@ -38,10 +41,17 @@ export function useAdminQuery<T>(url: string) {
     };
   }, [url, identity]);
   return {
-    data: result?.identity === identity ? result.data : undefined,
+    // Keep the current view mounted during a refresh, but never show another
+    // search or page's results while its request is loading.
+    data: result?.url === url ? result.data : undefined,
     error: result?.identity === identity ? result.error : undefined,
     loading: result?.identity !== identity,
     reload: () => setRevision((n) => n + 1),
+    updateData: (update: (data: T) => T) => setResult((previous) =>
+      previous?.identity === identity && previous.data !== undefined
+        ? { ...previous, data: update(previous.data) }
+        : previous,
+    ),
   };
 }
 export function ErrorNotice({

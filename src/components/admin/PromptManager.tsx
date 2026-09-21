@@ -28,6 +28,7 @@ export default function PromptManager() {
     data,
     error: loadError,
     reload,
+    updateData,
   } = useAdminQuery<PageResult<StaffPrompt>>(`/api/admin/prompts?${query}`);
   const [adding, setAdding] = useState(false);
   const [kind, setKind] = useState<StaffPrompt["kind"]>("picture");
@@ -39,9 +40,11 @@ export default function PromptManager() {
   const [captionPs, setCaptionPs] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
-  const [pending, setPending] = useState<number | null>(null);
+  const pendingIds = useRef(new Set<number>());
+  const [pending, setPending] = useState(new Set<number>());
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [actionNotice, setActionNotice] = useState("");
   const [failures, setFailures] = useState<{ name: string; why: string }[]>([]);
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -81,21 +84,33 @@ export default function PromptManager() {
     }
   }
   async function toggle(row: StaffPrompt) {
-    setPending(row.id);
+    if (pendingIds.current.has(row.id)) return;
+    pendingIds.current.add(row.id);
+    setPending(new Set(pendingIds.current));
     setError("");
-    setNotice("");
+    setActionNotice("");
     try {
-      await setPromptActive(row.id, !row.active);
-      setNotice(`Prompt #${row.id} ${row.active ? "paused" : "activated"}.`);
-      reload();
+      const updated = await setPromptActive(row.id, !row.active);
+      updateData((current) => ({
+        ...current,
+        items: current.items.map((item) => item.id === row.id
+          ? { ...item, active: updated.active }
+          : item),
+      }));
+      setActionNotice(`Prompt #${row.id} ${updated.active ? "activated" : "paused"}.`);
+      // A status filter needs a background refresh to refill the page after
+      // the changed prompt stops matching. The table remains mounted.
+      if (active) reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not update the prompt.");
     } finally {
-      setPending(null);
+      pendingIds.current.delete(row.id);
+      setPending(new Set(pendingIds.current));
     }
   }
   return (
     <>
+      <span className="sr-only" role="status">{actionNotice}</span>
       <div className="admin-toolbar">
         <Search
           value={q}
@@ -359,11 +374,11 @@ export default function PromptManager() {
                     <td>
                       <button
                         className="admin-button"
-                        disabled={pending !== null}
+                        disabled={pending.has(row.id)}
                         aria-label={`${row.active ? "Pause" : "Activate"} prompt ${row.id}`}
                         onClick={() => toggle(row)}
                       >
-                        {pending === row.id
+                        {pending.has(row.id)
                           ? "Saving…"
                           : row.active
                             ? "Pause"
