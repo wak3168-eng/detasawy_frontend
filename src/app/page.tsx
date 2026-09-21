@@ -41,7 +41,7 @@ export default async function Home() {
       />
       <Header />
       <main>
-        <Hero />
+        <Hero live={live} />
         <StatsStrip stats={statsToStrip(live)} ticker={statsToTicker(live)} />
         <HowItWorks />
         <LeaderboardSection />

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GlobeSection from "@/components/globe/GlobeSection";
+import type { LiveStats } from "@/lib/stats";
 
 const DEMO_REPLIES = [
   { ps: "څنګه يې؟", tag: null },
@@ -7,7 +8,7 @@ const DEMO_REPLIES = [
   { ps: "ښه يوم", tag: "Afridi · Khyber" },
 ];
 
-export default function Hero() {
+export default function Hero({ live }: { live: LiveStats | null }) {
   return (
     <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-12 sm:px-8 lg:grid-cols-2 lg:gap-14 lg:pb-24 lg:pt-20">
       <div>
@@ -59,8 +60,8 @@ export default function Hero() {
           ))}
         </div>
       </div>
-      <div className="relative aspect-square w-full max-w-[520px] justify-self-center overflow-hidden rounded-3xl border border-mist bg-gradient-to-b from-mist/50 to-ice lg:justify-self-end">
-        <GlobeSection />
+      <div className="min-w-0 w-full max-w-[560px] justify-self-center lg:justify-self-end">
+        <GlobeSection live={live} />
       </div>
     </section>
   );
