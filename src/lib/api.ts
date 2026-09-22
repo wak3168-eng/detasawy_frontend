@@ -203,6 +203,57 @@ export type DatasetItem = {
   answers: number;
   voices: number;
   words: WordGroup[];
+  representative: RepresentativeWord | null;
+};
+
+export type RepresentativeWord = {
+  word: string;
+  count: number;
+  sampleSize: number;
+  share: number;
+  margin: number;
+  confidenceLower: number;
+  status: "representative" | "mixed" | "insufficient";
+};
+
+export type DatasetGroup = {
+  key: string;
+  label: string;
+  responses: number;
+  voices: number;
+  pictures: number;
+};
+
+export type DatasetGrouping =
+  | "all"
+  | "country"
+  | "province"
+  | "district"
+  | "tehsil"
+  | "tribe"
+  | "clan"
+  | "subclan";
+
+export type DatasetResponse = {
+  total: number;
+  items: DatasetItem[];
+  summary: {
+    pictures: number;
+    answeredPictures: number;
+    responses: number;
+    voices: number;
+  };
+  grouping: {
+    by: DatasetGrouping;
+    selectedKey: string | null;
+    selectedLabel: string | null;
+    groups: DatasetGroup[];
+  };
+  representativeRules: {
+    minimumSample: number;
+    minimumShare: number;
+    minimumMargin: number;
+  };
 };
 
 export function getDataset(opts: {
@@ -210,10 +261,16 @@ export function getDataset(opts: {
   all?: boolean;
   limit?: number;
   offset?: number;
-}): Promise<{ total: number; items: DatasetItem[] }> {
+  groupBy?: DatasetGrouping;
+  group?: string;
+  minSample?: number;
+}): Promise<DatasetResponse> {
   const params = new URLSearchParams();
   if (opts.q) params.set("q", opts.q);
   if (opts.all) params.set("all", "1");
+  if (opts.groupBy) params.set("groupBy", opts.groupBy);
+  if (opts.group) params.set("group", opts.group);
+  params.set("minSample", String(opts.minSample ?? 10));
   params.set("limit", String(opts.limit ?? 20));
   params.set("offset", String(opts.offset ?? 0));
   return request(`/api/admin/dataset?${params}`, {}, true);
@@ -388,6 +445,7 @@ export type WordRow = {
 export type WordGroup = {
   word: string;
   count: number;
+  share: number;
   /** Other spellings people used for this same word. */
   variants?: { word: string; count: number }[];
   /** Recordings across every place that gave this word. */
