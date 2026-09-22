@@ -30,6 +30,20 @@ const statusLabel = {
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
 
+function submittedNames(item: DatasetItem) {
+  return item.words
+    .flatMap((group) => {
+      const variants = group.variants ?? [];
+      const primaryCount = group.count - variants.reduce((sum, variant) => sum + variant.count, 0);
+      return [
+        { word: group.word, count: primaryCount },
+        ...variants.map((variant) => ({ word: variant.word, count: variant.count })),
+      ];
+    })
+    .filter((name) => name.word && name.count > 0)
+    .sort((left, right) => right.count - left.count || left.word.localeCompare(right.word));
+}
+
 export default function DatasetPanel() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
@@ -166,16 +180,18 @@ export default function DatasetPanel() {
                 <thead>
                   <tr>
                     <th>Picture</th>
-                    <th>Leading response</th>
+                    <th>Most common name</th>
                     <th>Responses</th>
                     <th>Audio</th>
-                    <th>Alternatives</th>
+                    <th>Other names</th>
                     <th><span className="sr-only">Inspect</span></th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.items.map((item) => {
                     const lead = item.representative;
+                    const names = submittedNames(item);
+                    const otherNames = names.filter((name) => name.word !== lead?.word);
                     return (
                       <tr key={item.id}>
                         <td>
@@ -200,7 +216,17 @@ export default function DatasetPanel() {
                         </td>
                         <td>{item.answers}</td>
                         <td>{item.voices}</td>
-                        <td>{Math.max(0, item.words.length - 1)}</td>
+                        <td>
+                          {otherNames.length ? (
+                            <div className="dataset-other-names">
+                              {otherNames.map((name) => (
+                                <span dir="auto" key={name.word}>
+                                  {name.word} <small>{name.count}</small>
+                                </span>
+                              ))}
+                            </div>
+                          ) : <span className="admin-badge">None yet</span>}
+                        </td>
                         <td>
                           <button
                             className="admin-button"
@@ -236,7 +262,7 @@ export default function DatasetPanel() {
               <Media kind={selected.kind} url={selected.mediaUrl} title={selected.caption} />
               <div>
                 <h2>{selected.caption}</h2>
-                <p>Every grouped answer in {scope}</p>
+                <p>Every submitted name in {scope}</p>
               </div>
             </div>
             <button className="admin-button" onClick={() => setSelected(undefined)}>Close</button>
@@ -245,7 +271,7 @@ export default function DatasetPanel() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Response</th>
+                  <th>Name</th>
                   <th>Usage</th>
                   <th>People</th>
                   <th>Audio</th>
@@ -296,9 +322,10 @@ export default function DatasetPanel() {
 
       <p className="admin-note">
         Every picture and answer remains one source record. These country, district,
-        clan and subclan views are statistical groupings. A leading response is
+        clan and subclan views are statistical groupings. The most common name is
         marked representative only when its sample size, usage share and lead over
-        alternatives pass the displayed thresholds.
+        alternatives pass the displayed thresholds. Other names and spelling variants
+        remain visible and are never removed by that calculation.
       </p>
     </>
   );

@@ -588,6 +588,27 @@ body {
   font-size: 11px;
   line-height: 1.55;
 }
+.dataset-other-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 160px;
+  max-width: 360px;
+}
+.dataset-other-names > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 7px;
+  border: 1px solid var(--mist);
+  border-radius: 5px;
+  background: #f8fafb;
+  font-size: 12px;
+}
+.dataset-other-names small {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
 .dataset-table td {
   vertical-align: middle;
 }
