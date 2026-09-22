@@ -26,7 +26,7 @@ export const adminSections = [
   {
     slug: "dataset",
     title: "Dataset explorer",
-    description: "Compare words and regional variants for each prompt.",
+    description: "Browse picture names by country, district and community.",
     roles: ["superadmin"],
     icon: "dataset",
   },
