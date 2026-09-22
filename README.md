@@ -35,3 +35,5 @@ npm run dev
 - **Mobile-first** — verify at ~375px before shipping.
 - **Minimalist writing** — short, plain copy everywhere.
 - **Theme** — `#F7FBFC` ice · `#D6E6F2` mist · `#B9D7EA` sky · `#769FCD` azure (+ derived ink/deep shades for contrast), defined once in `globals.css` and `lib/theme.ts`.
+## Dataset explorer
+The admin dataset explorer groups collected responses by geography and self-reported community. Open a group to see answered pictures, the most common name, and every submitted alternative. The complete collection also includes pictures awaiting responses.
