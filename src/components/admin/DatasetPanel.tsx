@@ -91,23 +91,27 @@ export default function DatasetPanel() {
     setGroupBy("all");
     setGroup("");
     setQ("");
+    setAll(true);
     resetItems();
   };
   const openDimension = (dimension: Exclude<DatasetGrouping, "all">) => {
     setGroupBy(dimension);
     setGroup("");
     setQ("");
+    setAll(false);
     setStage("groups");
     resetItems();
   };
   const openAllPictures = () => {
     setGroupBy("all");
     setGroup("");
+    setAll(true);
     setStage("items");
     resetItems();
   };
   const openGroup = (key: string) => {
     setGroup(key);
+    setAll(false);
     setStage("items");
     resetItems();
   };
