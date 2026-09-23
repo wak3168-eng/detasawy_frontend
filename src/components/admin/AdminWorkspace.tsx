@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
-import { getMe, logout } from "@/lib/api";
+import { ApiError, getMe, logout } from "@/lib/api";
 import type { AuthUser } from "@/lib/auth";
 import { clearDraft } from "@/lib/profileDraft";
 import { Mark } from "@/components/brand/Logo";
@@ -58,18 +58,25 @@ export default function AdminWorkspace({
         }
       },
       (e) => {
-        if (alive) setError(e.message);
+        if (!alive) return;
+        if (e instanceof ApiError && e.status === 401) {
+          router.replace("/login?next=/admin");
+        } else setError(e.message);
       },
     );
     return () => {
       alive = false;
     };
-  }, [retry]);
+  }, [retry, router]);
   const role = user?.role ?? "contributor";
   const signOut = async () => {
-    await logout();
-    clearDraft();
-    router.push("/login");
+    try {
+      await logout();
+      clearDraft();
+      router.push("/login");
+    } catch {
+      setError("Could not log out. Please try again to close your session.");
+    }
   };
   return (
     <div className="admin-workspace">

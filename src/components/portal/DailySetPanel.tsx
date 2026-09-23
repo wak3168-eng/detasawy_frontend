@@ -10,7 +10,7 @@ import ReplyActivity from "@/components/portal/ReplyActivity";
 import ShareCard from "@/components/portal/ShareCard";
 import StatTiles from "@/components/portal/StatTiles";
 import { getTodayCount } from "@/lib/api";
-import { hasToken } from "@/lib/auth";
+import { hasSessionHint } from "@/lib/auth";
 import {
   loadDraft,
   subscribeDraft,
@@ -52,7 +52,7 @@ export default function DailySetPanel() {
 
   useEffect(() => {
     setDraft(loadDraft());
-    if (hasToken()) {
+    if (hasSessionHint()) {
       getTodayCount().then(({ count }) => setTodayCount(count), () => {});
     }
     return subscribeDraft(() => setDraft(loadDraft()));

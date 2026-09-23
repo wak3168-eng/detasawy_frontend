@@ -1,23 +1,25 @@
 export type Role = "superadmin" | "reviewer" | "campaign" | "contributor";
 export type AuthUser = { name: string; email: string; role?: Role };
 
-const TOKEN_KEY = "detasawy:token";
 const USER_KEY = "detasawy:user";
+const SESSION_HINT = "detasawy:session-hint";
+let currentUser: AuthUser | null = null;
 
-export function getToken(): string | null {
+// Display hints only. Backend permissions and /api/auth/me authorize access.
+// The session credential is an HttpOnly cookie.
+export function hasSessionHint(): boolean {
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    localStorage.removeItem("detasawy:token");
+    return currentUser !== null || localStorage.getItem(SESSION_HINT) === "1";
   } catch {
-    return null;
+    return currentUser !== null;
   }
 }
 
-export function hasToken(): boolean {
-  return getToken() !== null;
-}
-
 export function getUser(): AuthUser | null {
+  if (currentUser) return currentUser;
   try {
+    if (!hasSessionHint()) return null;
     const raw = localStorage.getItem(USER_KEY);
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   } catch {
@@ -25,20 +27,24 @@ export function getUser(): AuthUser | null {
   }
 }
 
-export function setAuth(token: string, user: AuthUser) {
+export function setAuth(user: AuthUser) {
+  currentUser = user;
   try {
-    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem("detasawy:token");
+    localStorage.setItem(SESSION_HINT, "1");
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   } catch {
-    // storage unavailable — the session lasts for this page only
+    // Display state remains available in memory.
   }
 }
 
 export function clearAuth() {
+  currentUser = null;
   try {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("detasawy:token");
+    localStorage.removeItem(SESSION_HINT);
     localStorage.removeItem(USER_KEY);
   } catch {
-    // ignore
+    // Storage may be unavailable.
   }
 }
