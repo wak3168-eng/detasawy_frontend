@@ -81,7 +81,7 @@ export default function AdminWorkspace({
   return (
     <div className="admin-workspace">
       <aside className="admin-sidebar">
-        <Link href="/admin" className="admin-brand">
+        <Link href="/admin" prefetch={false} className="admin-brand">
           <Mark size={28} />
           <span>
             Detasawy<small>DATA WORKSPACE</small>
@@ -107,6 +107,7 @@ export default function AdminWorkspace({
               <Link
                 key={s.slug}
                 href={`/admin${s.slug ? `/${s.slug}` : ""}`}
+                prefetch={false}
                 onClick={() => setOpen(false)}
                 aria-current={s.slug === slug ? "page" : undefined}
               >

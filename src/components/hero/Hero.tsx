@@ -1,5 +1,5 @@
 import Link from "next/link";
-import GlobeSection from "@/components/globe/GlobeSection";
+import MapSlot from "@/components/globe/MapSlot";
 import type { LiveStats } from "@/lib/stats";
 
 const DEMO_REPLIES = [
@@ -61,7 +61,7 @@ export default function Hero({ live }: { live: LiveStats | null }) {
         </div>
       </div>
       <div className="min-w-0 w-full max-w-[560px] justify-self-center lg:justify-self-end">
-        <GlobeSection live={live} />
+        <MapSlot live={live} />
       </div>
     </section>
   );

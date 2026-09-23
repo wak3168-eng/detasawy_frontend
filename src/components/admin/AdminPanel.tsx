@@ -1,11 +1,13 @@
 "use client";
-import CampaignManager from "./CampaignManager";
+import dynamic from "next/dynamic";
 import OverviewStats from "./OverviewStats";
-import PromptManager from "./PromptManager";
-import ReviewQueue from "./ReviewQueue";
-import TeamManager from "./TeamManager";
-import DatasetPanel from "./DatasetPanel";
-import Contributions from "./Contributions";
+
+const CampaignManager = dynamic(() => import("./CampaignManager"));
+const PromptManager = dynamic(() => import("./PromptManager"));
+const ReviewQueue = dynamic(() => import("./ReviewQueue"));
+const TeamManager = dynamic(() => import("./TeamManager"));
+const DatasetPanel = dynamic(() => import("./DatasetPanel"));
+const Contributions = dynamic(() => import("./Contributions"));
 export default function AdminPanel({ section = "" }: { section?: string }) {
   switch (section) {
     case "prompts":
