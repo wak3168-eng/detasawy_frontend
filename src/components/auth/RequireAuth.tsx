@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { hasToken } from "@/lib/auth";
+import { ApiError, getMe } from "@/lib/api";
 
 /**
  * Everything inside the portal belongs to someone with an account. A visitor
@@ -18,18 +18,29 @@ export default function RequireAuth({
   const pathname = usePathname();
   const search = useSearchParams();
   const [allowed, setAllowed] = useState(false);
+  const [error, setError] = useState<string>();
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    if (hasToken()) {
-      setAllowed(true);
-      return;
-    }
+    let alive = true;
     const query = search.toString();
     const back = `${pathname}${query ? `?${query}` : ""}`;
-    router.replace(`/login?next=${encodeURIComponent(back)}`);
-  }, [pathname, router, search]);
+    getMe().then(() => {
+      if (alive) { setAllowed(true); setError(undefined); }
+    }).catch((err: unknown) => {
+      if (!alive) return;
+      setAllowed(false);
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace(`/login?next=${encodeURIComponent(back)}`);
+      } else {
+        setError("Unable to verify your session. Please try again.");
+      }
+    });
+    return () => { alive = false; };
+  }, [pathname, router, search, retry]);
 
   // nothing is drawn until we know — no flash of a page they cannot keep
+  if (error) return <div className="min-h-dvh bg-ice p-8" role="alert">{error} <button onClick={() => setRetry((v) => v + 1)}>Try again</button></div>;
   if (!allowed) return <div className="min-h-dvh bg-ice" />;
   return <>{children}</>;
 }

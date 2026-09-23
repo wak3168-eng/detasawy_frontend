@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Logo, { Mark } from "@/components/brand/Logo";
 import AdminSidebar from "@/components/portal/AdminSidebar";
 import { getMyStats, logout } from "@/lib/api";
-import { getUser, hasToken, type Role } from "@/lib/auth";
+import { getUser, hasSessionHint, type Role } from "@/lib/auth";
 import {
   clearDraft,
   loadDraft,
@@ -86,12 +86,13 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
   const [points, setPoints] = useState<number | null>(null);
+  const [logoutError, setLogoutError] = useState("");
 
   useEffect(() => {
     setDraft(loadDraft());
-    setAuthed(hasToken());
+    setAuthed(hasSessionHint());
     setRole(getUser()?.role ?? "contributor");
-    if (hasToken()) {
+    if (hasSessionHint()) {
       getMyStats().then((s) => setPoints(s.points), () => {});
     }
     try {
@@ -146,9 +147,14 @@ export default function Sidebar() {
   );
 
   const doLogout = async () => {
-    await logout();
-    clearDraft();
-    router.push("/");
+    setLogoutError("");
+    try {
+      await logout();
+      clearDraft();
+      router.push("/");
+    } catch {
+      setLogoutError("Could not log out. Please try again.");
+    }
   };
 
   if (!ready) {
@@ -290,6 +296,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
+        {logoutError && <p role="alert" className="mt-3 text-xs text-red-700">{logoutError}</p>}
         {authed && (
           <button
             onClick={doLogout}

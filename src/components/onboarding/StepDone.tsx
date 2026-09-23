@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { hasToken } from "@/lib/auth";
+import { hasSessionHint } from "@/lib/auth";
 import type { ProfileDraft } from "@/lib/profileDraft";
 
 export default function StepDone({
@@ -28,7 +28,7 @@ export default function StepDone({
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    setAuthed(hasToken());
+    setAuthed(hasSessionHint());
   }, []);
 
   return (

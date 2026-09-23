@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { hasToken } from "@/lib/auth";
+import { hasSessionHint } from "@/lib/auth";
 
 export default function AuthNav() {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    setAuthed(hasToken());
+    setAuthed(hasSessionHint());
   }, []);
 
   if (authed) {

@@ -29,6 +29,14 @@ npm install
 npm run dev
 ```
 
+For the local backend, set `BACKEND_URL=http://127.0.0.1:8000` before starting Next.js and run Django with `DEBUG=true`.
+
+## Authentication deployment
+
+Browser API and private-media requests use the same-origin `/api/*` rewrite. Set server-side `BACKEND_URL` to the matching backend; `NEXT_PUBLIC_API_BASE` is no longer used. Authentication uses expiring HttpOnly cookies and CSRF headers, with no bearer tokens in localStorage. Stored user metadata is only a display hint; the backend authorizes requests.
+
+Deploy this session migration together with the matching backend and its `identity.0004_ratelimitbucket` migration. Users must log in again. Before rollout, complete the backend `SECURITY.md` configuration, storage and proxy checks, then verify login, authenticated media and logout through the production frontend domain. Never cache authenticated API or private-media responses.
+
 ## Conventions
 
 - **Modular** — every feature is decomposed into components; no single-file pages.

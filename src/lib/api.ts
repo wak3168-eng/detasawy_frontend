@@ -1,12 +1,16 @@
 import { API_BASE } from "@/lib/apiBase";
-import { clearAuth, getToken, setAuth, type AuthUser } from "@/lib/auth";
+import { clearAuth, setAuth, type AuthUser } from "@/lib/auth";
 import type { ProfileDraft } from "@/lib/profileDraft";
 import { draftToPayload, type ServerProfile } from "@/lib/profileSync";
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  constructor(message: string, public status?: number) {
+    super(message);
+  }
+}
 
 export type Session = {
-  token: string;
+  csrfToken: string;
   user: AuthUser;
   profile: ServerProfile;
 };
@@ -27,24 +31,61 @@ function extractError(data: unknown, status: number): string {
   return "Something went wrong. Please try again.";
 }
 
+let csrfToken: string | undefined;
+let csrfPending: Promise<string> | undefined;
+
+async function getCsrfToken(): Promise<string> {
+  if (csrfToken) return csrfToken;
+  if (!csrfPending) {
+    csrfPending = fetch(`${API_BASE}/api/auth/csrf`, {
+      credentials: "same-origin", cache: "no-store",
+    }).then(async (response) => {
+      const data = await response.json();
+      if (!response.ok || typeof data.csrfToken !== "string") {
+        throw new ApiError("Unable to start a secure session. Please try again.", response.status);
+      }
+      csrfToken = data.csrfToken;
+      return data.csrfToken as string;
+    }).finally(() => { csrfPending = undefined; });
+  }
+  return csrfPending;
+}
+
+async function apiFetch(path: string, options: RequestInit = {}, retryCsrf = true): Promise<Response> {
+  const headers = new Headers(options.headers);
+  const method = (options.method ?? "GET").toUpperCase();
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+    headers.set("X-CSRFToken", await getCsrfToken());
+  }
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options, credentials: "same-origin", cache: "no-store", headers,
+  });
+  if (response.status === 401) clearAuth();
+  // Another tab may have logged in and rotated the CSRF cookie. Only retry a
+  // request explicitly rejected by CSRF validation, before its handler ran.
+  if (response.status === 403 && retryCsrf) {
+    const data = await response.clone().json().catch(() => null);
+    if (typeof data?.detail === "string" && data.detail.startsWith("CSRF Failed:")) {
+      csrfToken = undefined;
+      return apiFetch(path, options, false);
+    }
+  }
+  return response;
+}
+
 export async function request<T>(
   path: string,
   options: RequestInit = {},
-  authed = false,
+  _authed = false,
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string> | undefined),
-  };
-  if (authed) {
-    const token = getToken();
-    if (!token) throw new ApiError("Not logged in.");
-    headers.Authorization = `Token ${token}`;
-  }
-  const response = await fetch(`${API_BASE}${path}`, { ...options, ...(authed ? { cache: "no-store" as const } : {}), headers });
+  // Retain the legacy call signature; cookies authenticate every request.
+  void _authed;
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+  const response = await apiFetch(path, { ...options, headers });
   if (response.status === 204) return undefined as T;
   const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new ApiError(extractError(data, response.status));
+  if (!response.ok) throw new ApiError(extractError(data, response.status), response.status);
   if (data === null) throw new ApiError("The server returned an invalid response. Please try again.");
   return data as T;
 }
@@ -54,22 +95,22 @@ export async function login(email: string, password: string): Promise<Session> {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  setAuth(session.token, session.user);
+  csrfToken = session.csrfToken;
+  setAuth(session.user);
   return session;
 }
 
 export async function logout(): Promise<void> {
-  try {
-    await request("/api/auth/logout", { method: "POST" }, true);
-  } catch {
-    // token already invalid — clearing locally is what matters
-  } finally {
-    clearAuth();
-  }
+  // Do not claim logout succeeded if the server could not revoke the session.
+  await request("/api/auth/logout", { method: "POST" });
+  csrfToken = undefined;
+  clearAuth();
 }
 
-export function getMe(): Promise<{ user: AuthUser; profile: ServerProfile }> {
-  return request("/api/auth/me", {}, true);
+export async function getMe(): Promise<{ user: AuthUser; profile: ServerProfile }> {
+  const session = await request<{ user: AuthUser; profile: ServerProfile }>("/api/auth/me");
+  setAuth(session.user);
+  return session;
 }
 
 export type OverviewStats = {
@@ -288,8 +329,6 @@ export function uploadPrompt(input: {
   captionEn?: string;
   captionPs?: string;
 }): Promise<StaffPrompt> {
-  const token = getToken();
-  if (!token) return Promise.reject(new ApiError("Not logged in."));
   const form = new FormData();
   form.append("kind", input.kind);
   form.append("media", input.media);
@@ -297,13 +336,12 @@ export function uploadPrompt(input: {
   if (input.licence) form.append("licence", input.licence);
   if (input.captionEn) form.append("captionEn", input.captionEn);
   if (input.captionPs) form.append("captionPs", input.captionPs);
-  return fetch(`${API_BASE}/api/admin/prompts`, {
+  return apiFetch("/api/admin/prompts", {
     method: "POST",
-    headers: { Authorization: `Token ${token}` },
     body: form,
   }).then(async (res) => {
     const data: unknown = await res.json().catch(() => null);
-    if (!res.ok) throw new ApiError(extractError(data, res.status));
+    if (!res.ok) throw new ApiError(extractError(data, res.status), res.status);
     return data as StaffPrompt;
   });
 }
@@ -335,18 +373,15 @@ export function uploadPromptFolder(
   kind: "picture" | "scene" | "voice",
   files: File[],
 ): Promise<BatchUploadResult> {
-  const token = getToken();
-  if (!token) return Promise.reject(new ApiError("Not logged in."));
   const form = new FormData();
   form.append("kind", kind);
   for (const file of files) form.append("media", file);
-  return fetch(`${API_BASE}/api/admin/prompts/batch`, {
+  return apiFetch("/api/admin/prompts/batch", {
     method: "POST",
-    headers: { Authorization: `Token ${token}` },
     body: form,
   }).then(async (res) => {
     const data: unknown = await res.json().catch(() => null);
-    if (!res.ok) throw new ApiError(extractError(data, res.status));
+    if (!res.ok) throw new ApiError(extractError(data, res.status), res.status);
     return data as BatchUploadResult;
   });
 }
@@ -412,8 +447,6 @@ export function submitContribution(
   text: string,
   audio?: Blob | null,
 ): Promise<{ id: number; todayCount: number }> {
-  const token = getToken();
-  if (!token) return Promise.reject(new ApiError("Not logged in."));
   const form = new FormData();
   form.append("prompt", String(promptId));
   form.append("text", text);
@@ -421,13 +454,12 @@ export function submitContribution(
     const ext = audio.type.includes("mp4") ? "mp4" : "webm";
     form.append("audio", audio, `voice.${ext}`);
   }
-  return fetch(`${API_BASE}/api/contributions`, {
+  return apiFetch("/api/contributions", {
     method: "POST",
-    headers: { Authorization: `Token ${token}` },
     body: form,
   }).then(async (res) => {
     const data: unknown = await res.json().catch(() => null);
-    if (!res.ok) throw new ApiError(extractError(data, res.status));
+    if (!res.ok) throw new ApiError(extractError(data, res.status), res.status);
     return data as { id: number; todayCount: number };
   });
 }
@@ -462,22 +494,19 @@ export function getTodayCount(): Promise<{ count: number }> {
 }
 
 export function uploadProfilePhoto(dataUrl: string): Promise<ServerProfile> {
-  const token = getToken();
-  if (!token) return Promise.reject(new ApiError("Not logged in."));
   return fetch(dataUrl)
     .then((r) => r.blob())
     .then((blob) => {
       const form = new FormData();
       form.append("photo", blob, "photo.jpg");
-      return fetch(`${API_BASE}/api/profile/photo`, {
+      return apiFetch("/api/profile/photo", {
         method: "POST",
-        headers: { Authorization: `Token ${token}` },
         body: form,
       });
     })
     .then(async (res) => {
       const data: unknown = await res.json().catch(() => null);
-      if (!res.ok) throw new ApiError(extractError(data, res.status));
+      if (!res.ok) throw new ApiError(extractError(data, res.status), res.status);
       return data as ServerProfile;
     });
 }

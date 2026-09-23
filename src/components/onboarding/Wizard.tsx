@@ -8,7 +8,7 @@ import StepSelect from "@/components/onboarding/StepSelect";
 import StepShell from "@/components/onboarding/StepShell";
 import StepText from "@/components/onboarding/StepText";
 import { saveProfile, uploadProfilePhoto } from "@/lib/api";
-import { hasToken } from "@/lib/auth";
+import { hasSessionHint } from "@/lib/auth";
 import {
   clearDraft,
   loadDraft,
@@ -73,7 +73,7 @@ export default function Wizard() {
   }, [draft, ready]);
 
   useEffect(() => {
-    if (ready && stage === "done" && draft.completedAt && hasToken()) {
+    if (ready && stage === "done" && draft.completedAt && hasSessionHint()) {
       saveProfile(draft).catch(() => {});
       // a freshly picked photo is still a local data URL — store it server-side
       if (draft.photo?.startsWith("data:")) {

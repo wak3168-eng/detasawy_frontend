@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getMyStats, type MyStats } from "@/lib/api";
-import { hasToken } from "@/lib/auth";
+import { hasSessionHint } from "@/lib/auth";
 
 export default function StatTiles() {
   const [stats, setStats] = useState<MyStats | null>(null);
 
   useEffect(() => {
-    if (hasToken()) getMyStats().then(setStats, () => {});
+    if (hasSessionHint()) getMyStats().then(setStats, () => {});
   }, []);
 
   const rank = (n: number | null | undefined) =>

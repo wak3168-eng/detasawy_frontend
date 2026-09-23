@@ -76,6 +76,7 @@ export default function AdminSidebar() {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [email, setEmail] = useState("");
+  const [logoutError, setLogoutError] = useState("");
 
   useEffect(() => {
     setEmail(getUser()?.email ?? "");
@@ -100,9 +101,14 @@ export default function AdminSidebar() {
   };
 
   const doLogout = async () => {
-    await logout();
-    clearDraft();
-    router.push("/");
+    setLogoutError("");
+    try {
+      await logout();
+      clearDraft();
+      router.push("/");
+    } catch {
+      setLogoutError("Could not log out. Please try again.");
+    }
   };
 
   const linkStyle = (href: string) =>
@@ -212,6 +218,7 @@ export default function AdminSidebar() {
           ))}
         </nav>
 
+        {logoutError && <p role="alert" className="mt-3 text-xs text-red-200">{logoutError}</p>}
         <button
           onClick={doLogout}
           className="mt-4 w-full py-1.5 text-xs font-bold text-sky transition-colors hover:text-white md:mt-auto md:pt-5"
